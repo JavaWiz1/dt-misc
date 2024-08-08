@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>dt_tools.logger.logging_helper &mdash; dt-misc  documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=19f00094" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../../../_static/jquery.js?v=5d32c60e"></script>
+        <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="../../../_static/documentation_options.js?v=5929fcd5"></script>
+        <script src="../../../_static/doctools.js?v=9a2dae69"></script>
+        <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../index.html" class="icon icon-home">
+            dt-misc
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../dt_tools.html">dt_tools namespace</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">dt-misc</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">dt_tools.logger.logging_helper</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for dt_tools.logger.logging_helper</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Logging helper methods for loguru</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">import</span> <span class="nn">functools</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+
+<span class="kn">from</span> <span class="nn">loguru</span> <span class="kn">import</span> <span class="n">logger</span>
+
+<span class="n">DEFAULT_FILE_LOGFMT</span> <span class="o">=</span> <span class="s2">&quot;&lt;green&gt;{time:MM/DD/YY HH:mm:ss}&lt;/green&gt; |&lt;level&gt;</span><span class="si">{level: &lt;8}</span><span class="s2">&lt;/level&gt;|&lt;cyan&gt;</span><span class="si">{name:10}</span><span class="s2">&lt;/cyan&gt;|&lt;cyan&gt;</span><span class="si">{line:3}</span><span class="s2">&lt;/cyan&gt;| &lt;level&gt;</span><span class="si">{message}</span><span class="s2">&lt;/level&gt;&quot;</span>
+<span class="sd">&quot;&quot;&quot;For file logging, format- timestamp \|level\|method name\|lineno\|message&quot;&quot;&quot;</span>
+
+<span class="n">DEFAULT_CONSOLE_LOGFMT</span> <span class="o">=</span> <span class="s2">&quot;&lt;level&gt;</span><span class="si">{message}</span><span class="s2">&lt;/level&gt;&quot;</span>
+<span class="sd">&quot;&quot;&quot;For console logging, format- message&quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="configure_logger">
+<a class="viewcode-back" href="../../../dt_tools.logger.logging_helper.html#dt_tools.logger.logging_helper.configure_logger">[docs]</a>
+<span class="k">def</span> <span class="nf">configure_logger</span><span class="p">(</span><span class="n">log_target</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">stderr</span><span class="p">,</span> <span class="n">log_level</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;INFO&quot;</span><span class="p">,</span> <span class="n">log_format</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">log_handle</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Configure logger via loguru.</span>
+
+<span class="sd">     - should be done once for each logger (console, file,..)</span>
+<span class="sd">     - if reconfiguring a logger, pass the log_handle</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters:</span>
+<span class="sd">        log_target: defaults to stderr, but can supply filename as well</span>
+<span class="sd">        log_level : TRACE|DEBUG|INFO(dflt)|ERROR|CRITICAL</span>
+<span class="sd">        log_format: format for output log line</span>
+<span class="sd">        log_handle: handle of log being re-initialized.</span>
+<span class="sd">        other     : keyword args related to loguru logger.add() function</span>
+
+<span class="sd">    Example::</span>
+
+<span class="sd">        import dt_tools.logger.logging_helper as lh</span>
+<span class="sd">        from loguru import logger as LOGGER</span>
+
+<span class="sd">        log_file = &#39;./mylog.log&#39;</span>
+
+<span class="sd">        f_handle = lh.configure_logger(log_target=log_file, log_level=&quot;DEBUG&quot;)</span>
+<span class="sd">        c_handle - lh.configure_logger()</span>
+
+<span class="sd">        LOGGER.debug(&#39;this should only show up in file logger&#39;)</span>
+<span class="sd">        LOGGER.info(&#39;this should show up in file logger and console&#39;)</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        logger_handle_id: integer representing logger handle</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">log_handle</span><span class="p">)</span>
+        <span class="c1"># attempt to include all python loggers</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">basicConfig</span><span class="p">(</span><span class="n">handlers</span><span class="o">=</span><span class="p">[</span><span class="n">_InterceptHandler</span><span class="p">()],</span> <span class="n">level</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">force</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="k">except</span><span class="p">:</span>  <span class="c1"># noqa: E722</span>
+        <span class="k">pass</span>
+    
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">log_format</span><span class="p">:</span>
+        <span class="c1"># Set format based on type of logger (file vs console)</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">log_target</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+            <span class="n">log_format</span> <span class="o">=</span> <span class="n">DEFAULT_FILE_LOGFMT</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">log_format</span> <span class="o">=</span> <span class="n">DEFAULT_CONSOLE_LOGFMT</span>
+
+    <span class="n">hndl</span> <span class="o">=</span> <span class="n">logger</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">sink</span><span class="o">=</span><span class="n">log_target</span><span class="p">,</span> <span class="n">level</span><span class="o">=</span><span class="n">log_level</span><span class="p">,</span> <span class="nb">format</span><span class="o">=</span><span class="n">log_format</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">hndl</span></div>
+
+
+<div class="viewcode-block" id="logger_wraps">
+<a class="viewcode-back" href="../../../dt_tools.logger.logging_helper.html#dt_tools.logger.logging_helper.logger_wraps">[docs]</a>
+<span class="k">def</span> <span class="nf">logger_wraps</span><span class="p">(</span><span class="o">*</span><span class="p">,</span> <span class="n">entry</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">exit</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">level</span><span class="o">=</span><span class="s2">&quot;DEBUG&quot;</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    function decorator wrapper to log entry and exit</span>
+
+<span class="sd">    When decorator enabled, messages will automatically be included in the the log:</span>
+<span class="sd">    Example::    </span>
+
+<span class="sd">        @logger_wraps()</span>
+<span class="sd">        def foo(a, b, c):</span>
+<span class="sd">            logger.info(&quot;Inside the function&quot;)</span>
+<span class="sd">            return a * b * c </span>
+
+<span class="sd">    Output:</span>
+<span class="sd">    &gt; </span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">wrapper</span><span class="p">(</span><span class="n">func</span><span class="p">):</span>
+        <span class="n">name</span> <span class="o">=</span> <span class="n">func</span><span class="o">.</span><span class="vm">__name__</span>
+
+        <span class="nd">@functools</span><span class="o">.</span><span class="n">wraps</span><span class="p">(</span><span class="n">func</span><span class="p">)</span>
+        <span class="k">def</span> <span class="nf">wrapped</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+            <span class="n">logger_</span> <span class="o">=</span> <span class="n">logger</span><span class="o">.</span><span class="n">opt</span><span class="p">(</span><span class="n">depth</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">entry</span><span class="p">:</span>
+                <span class="n">logger_</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">level</span><span class="p">,</span> <span class="s2">&quot;Entering &#39;</span><span class="si">{}</span><span class="s2">&#39; (args=</span><span class="si">{}</span><span class="s2">, kwargs=</span><span class="si">{}</span><span class="s2">)&quot;</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">args</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">)</span>
+            <span class="n">result</span> <span class="o">=</span> <span class="n">func</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">exit</span><span class="p">:</span>
+                <span class="n">logger_</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">level</span><span class="p">,</span> <span class="s2">&quot;Exiting &#39;</span><span class="si">{}</span><span class="s2">&#39; (result=</span><span class="si">{}</span><span class="s2">)&quot;</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">result</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">result</span>
+
+        <span class="k">return</span> <span class="n">wrapped</span>
+
+    <span class="k">return</span> <span class="n">wrapper</span></div>
+
+
+<span class="k">class</span> <span class="nc">_InterceptHandler</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">Handler</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">emit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">record</span><span class="p">):</span>
+        <span class="c1"># Get corresponding Loguru level if it exists.</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">level</span> <span class="o">=</span> <span class="n">logger</span><span class="o">.</span><span class="n">level</span><span class="p">(</span><span class="n">record</span><span class="o">.</span><span class="n">levelname</span><span class="p">)</span><span class="o">.</span><span class="n">name</span>
+        <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+            <span class="n">level</span> <span class="o">=</span> <span class="n">record</span><span class="o">.</span><span class="n">levelno</span>
+
+        <span class="c1"># Find caller from where originated the logged message.</span>
+        <span class="n">frame</span><span class="p">,</span> <span class="n">depth</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">_getframe</span><span class="p">(</span><span class="mi">6</span><span class="p">),</span> <span class="mi">6</span>
+        <span class="k">while</span> <span class="n">frame</span> <span class="ow">and</span> <span class="n">frame</span><span class="o">.</span><span class="n">f_code</span><span class="o">.</span><span class="n">co_filename</span> <span class="o">==</span> <span class="n">logging</span><span class="o">.</span><span class="vm">__file__</span><span class="p">:</span>
+            <span class="n">frame</span> <span class="o">=</span> <span class="n">frame</span><span class="o">.</span><span class="n">f_back</span>
+            <span class="n">depth</span> <span class="o">+=</span> <span class="mi">1</span>
+
+        <span class="n">logger</span><span class="o">.</span><span class="n">opt</span><span class="p">(</span><span class="n">depth</span><span class="o">=</span><span class="n">depth</span><span class="p">,</span> <span class="n">exception</span><span class="o">=</span><span class="n">record</span><span class="o">.</span><span class="n">exc_info</span><span class="p">)</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">level</span><span class="p">,</span> <span class="n">record</span><span class="o">.</span><span class="n">getMessage</span><span class="p">())</span>
+        
+<span class="nd">@logger_wraps</span><span class="p">(</span><span class="n">level</span><span class="o">=</span><span class="s1">&#39;INFO&#39;</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">_print_log_level_definitions</span><span class="p">():</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">logger</span><span class="o">.</span><span class="n">level</span><span class="p">(</span><span class="s2">&quot;TRACE&quot;</span><span class="p">))</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">logger</span><span class="o">.</span><span class="n">level</span><span class="p">(</span><span class="s2">&quot;DEBUG&quot;</span><span class="p">))</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">logger</span><span class="o">.</span><span class="n">level</span><span class="p">(</span><span class="s2">&quot;INFO&quot;</span><span class="p">))</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">logger</span><span class="o">.</span><span class="n">level</span><span class="p">(</span><span class="s2">&quot;SUCCESS&quot;</span><span class="p">))</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">logger</span><span class="o">.</span><span class="n">level</span><span class="p">(</span><span class="s2">&quot;WARNING&quot;</span><span class="p">))</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">logger</span><span class="o">.</span><span class="n">level</span><span class="p">(</span><span class="s2">&quot;ERROR&quot;</span><span class="p">))</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">logger</span><span class="o">.</span><span class="n">level</span><span class="p">(</span><span class="s2">&quot;CRITICAL&quot;</span><span class="p">))</span>
+
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+    <span class="kn">import</span> <span class="nn">dt_tools.cli.dt_misc_logging_demo</span> <span class="k">as</span> <span class="nn">module</span>
+     
+    <span class="n">module</span><span class="o">.</span><span class="n">demo</span><span class="p">()</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, JavaWiz1@hotmail.com.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
