@@ -118,18 +118,25 @@ class OSHelper():
             sep = ':'
         PATH = os.getenv('PATH')
         exe = None
+        found = False
         for dir in PATH.split(sep):
             exe = pathlib.Path(dir) / name
             if exe.exists():
+                found = True
                 break
             if OSHelper.is_windows():
                 exe = pathlib.Path(dir) / f'{name}.exe'
                 if exe.exists():
+                    found = True
                     break
                 exe = pathlib.Path(dir) / f'{name}.com'
                 if exe.exists():
+                    found = True
                     break
-        return exe
+
+        if found:
+            return exe
+        return None
 
     @staticmethod
     def is_windows_admin():

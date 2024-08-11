@@ -20,6 +20,7 @@ include = ["CHANGELOG.md"]
 [tool.poetry.dependencies]
 python = "^3.10"
 loguru = "^0.7.2"
+gtts = "^2.5.2"
 
 [[tool.poetry.source]]
 name = "PyPI"

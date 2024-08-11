@@ -3,7 +3,7 @@ import datetime
 import time
 import random
 
-LOGGER = lh.logger
+from loguru import logger as LOGGER
 
 def demo():
     test1_log = "./test1.log"
@@ -12,28 +12,38 @@ def demo():
     retention= 5
 
     lh.configure_logger()
+    LOGGER.info('')
+    LOGGER.info('dt_misc_logging_demo')
+    LOGGER.info('-'*80)
+    LOGGER.info('')
+    LOGGER.info('Begin demo...')
     lh.configure_logger(log_target=test1_log, log_level="DEBUG")
     lh.configure_logger(log_target=test2_log, log_level="TRACE",
                                     retention=retention, rotation=rotation)
-    LOGGER.info('Begin demo...')
+    LOGGER.info('- 30 message with random log levels will be sent to the logger.')
+    LOGGER.info('- Depending on configuration, each message will be routed to the appropriate logger(s)')
     LOGGER.info('')
-    LOGGER.info('30 message with varying log levels will be sent to the logger.')
-    LOGGER.info('Depending on configuration, each message will be routed to the appropriate logger(s)')
     LOGGER.info('Logger configuration:')
     LOGGER.info('  Console   : CRITICAL, ERROR, WARNING, INFO')
     LOGGER.info('  Test1.log : CRITICAL, ERROR, WARNING, INFO, DEBUG')
     LOGGER.info('  Test2.log : CRITICAL, ERROR, WARNING, INFO, DEBUG, TRACE')
     LOGGER.info('')
-    LOGGER.info(f'NOTE: The {test2_log} file is set to rotate every 10 seconds and have 5 total versions.')
+    LOGGER.info('NOTE: ')
+    LOGGER.info('- The Console will ONLY get INFO level and above.')
+    LOGGER.info(f'- The {test1_log} file will get DEBUG level and above.')
+    LOGGER.info(f'- The {test2_log} file will get TRACE level and above.')
+    LOGGER.info(f'- The {test2_log} file is set to rotate every 10 seconds and have 5 total versions.')
+    time.sleep(3)
     LOGGER.info('')
     LOGGER.trace('This TRACE message should ONLY print in test2.log')
     LOGGER.debug('This DEBUG message should print in test1.log and test2.log')
     LOGGER.info('This INFO message should print on console and test1/2 log files')
     for i in range(30):
         log_level = random.choice(['TRACE','DEBUG','INFO','WARNING','ERROR','CRITICAL'])
-        LOGGER.log(log_level, f'{i} {log_level} message')
+        LOGGER.log(log_level, f'message {i:2} {log_level}')
         time.sleep(1)
-    LOGGER.info('all done.')
+    LOGGER.info('')
+    LOGGER.info('demo complete.')
 
 if __name__ == "__main__":
     demo()
