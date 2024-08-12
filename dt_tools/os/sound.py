@@ -1,12 +1,18 @@
 """
 Speak a string of text or speak the contents of a text file.
 
+Currently, these routines expect VLC to be installed.
+
 Example::
     from dt_tools.os.sound import Accent, Sound
 
     obj = Sound()
     obj.speak('This is a test')
     obj.speak('This is a test, with an australian accent.', accent=Accent.Australia)
+
+ToDo:
+
+    Update to be cross platform without relying on VLC
 
 """
 import os
