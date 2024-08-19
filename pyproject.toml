@@ -27,9 +27,6 @@ name = "PyPI"
 priority = "primary"
 
 [[tool.poetry.source]]
-name = "piwheels"
-url = "https://www.piwheels.org/simple"
-priority = "supplemental"
 
 
 
