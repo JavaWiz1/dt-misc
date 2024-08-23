@@ -206,8 +206,8 @@ class OSHelper():
         LOGGER.debug(f'  returns {hresult}')
         return True if hresult > 32 else False
 
-    @classmethod
-    def disable_ctrl_c_handler(cls) -> bool:
+    @staticmethod
+    def disable_ctrl_c_handler() -> bool:
         """
         Disable handler for Ctrl-C checking.
 
@@ -221,8 +221,8 @@ class OSHelper():
             success = False
         return success
 
-    @classmethod
-    def enable_ctrl_c_handler(cls, handler_function: callable = None) -> bool:
+    @staticmethod
+    def enable_ctrl_c_handler(handler_function: callable = None) -> bool:
         """
         Enable handler for Ctrl-C checking.
         
@@ -243,7 +243,7 @@ class OSHelper():
         """
         success = True
         if handler_function is None:
-            handler_function = cls._interrupt_handler
+            handler_function = OSHelper._interrupt_handler
             
         try:
             signal.signal(signal.SIGINT, handler_function)
@@ -251,8 +251,8 @@ class OSHelper():
             success = False
         return success
 
-    @classmethod
-    def _interrupt_handler(cls, signum, frame):
+    @staticmethod
+    def _interrupt_handler(signum, frame):
         resp = ''
         while resp not in ['c', 'e']:
             resp = input('\nCtrl-C, Continue or Exit (c,e)? ').lower()

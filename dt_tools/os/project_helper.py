@@ -10,6 +10,7 @@ from loguru import logger as LOGGER
 class ProjectHelper:
     _max_depth = 4
 
+    @staticmethod
     def _search_down_tree(filename: str, start_path: str, depth: int = _max_depth) -> Union[pathlib.Path, None]:
         """
         Search directory tree towards root for filename starting at start path.
@@ -41,6 +42,7 @@ class ProjectHelper:
                 traverse_path = traverse_path.parent
         return result_file
 
+    @staticmethod
     def _check_metadata(target_name: str) -> Tuple[str,str]:
         ver = None
         determined_from = None
@@ -54,6 +56,7 @@ class ProjectHelper:
 
         return ver, determined_from
 
+    @staticmethod
     def _check_toml(project_name: str, calling_module: str) -> Tuple[str,str]:
         LOGGER.debug('Try pyproject.toml')
         ver = None
@@ -83,6 +86,7 @@ class ProjectHelper:
                 LOGGER.debug('- Identified via pyproject.toml')
         return ver, determined_from
     
+    @staticmethod
     def _check_call_stack(root_path: str, python_file: str) -> Tuple[str, str]:
         LOGGER.debug('Try python file')
         ver = None
@@ -110,6 +114,7 @@ class ProjectHelper:
     
         return ver, determined_from
     
+    @staticmethod
     def determine_version(target_name: str, identify_src: bool = False) -> Union[str, Tuple[str, str]]:
         """
         Retrieve project version for distribution (or running codebase)
@@ -126,9 +131,9 @@ class ProjectHelper:
             identify_src (bool, otional): Return a string indicating how the version was determined. Defaults to false
 
         Returns:
-            Union[str, Tuple[str,str]: version or version, source
-            version is in format major.minor.patch or YYYY.MM.DD  
-            source
+            Union[str,Tuple[str,str]: version or version, source.
+            - version is in format major.minor.patch or YYYY.MM.DD.
+            - source is one of 'importlib.metadata', 'pyproject.toml' or source filename.
         """
         if not isinstance(target_name, str):
             raise ValueError(f'Invalid target name (must be str) in determine_version: {target_name}')
@@ -154,7 +159,14 @@ class ProjectHelper:
             return (ver, determined_from)
         return ver
 
+    @staticmethod
     def installed_packages() -> dict:
+        """
+        Return a dictionary describing installed packages.
+
+        Returns:
+            dict: in format {"pkg_name1": "pkg_version", "pkg_name2": "pkg_version", ...}
+        """
         package: Distribution = None
         package_dict: dict = {}
         for package in distributions():

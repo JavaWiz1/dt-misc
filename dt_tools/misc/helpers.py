@@ -1,3 +1,5 @@
+from types import SimpleNamespace
+
 """
 General Helper Routines
 
@@ -7,9 +9,38 @@ General Helper Routines
 """
 # =================================================================================================
 class ObjectHelper:
+
+    @classmethod
+    def dict_to_obj(cls, in_dict: dict):
+        """
+        Convert a dictionary to an object
+
+        Args:
+            in_dict (dict): Input dictionary
+
+        Returns:
+            dict or object: Object representation of dictionary, or Object if not a dictionary
+
+        Raises:
+            TypeError if in_dict is NOT a dictionary.            
+        """
+        if isinstance(in_dict, dict):
+            return SimpleNamespace(**{k: cls.dict_to_obj(v) for k, v in in_dict.items()})
+        
+        raise(TypeError('Must supply dictionary as input'))
+    
+    
     @classmethod
     def to_dict(cls, obj, classkey=None):
-        """Recursively translate object into dictionary format"""
+        """
+        Recursively translate object into dictionary format
+        
+        Arguments:
+            obj: object to translate
+
+        Returns:
+            A dictionary representation of the object
+        """
         if isinstance(obj, dict):
             data = {}
             for (k, v) in obj.items():
@@ -31,17 +62,18 @@ class ObjectHelper:
 
 # =================================================================================================
 class StringHelper:
-    @classmethod
-    def pad_r(cls, text: str, length: int, pad_char: str = ' ') -> str:
+
+    @staticmethod
+    def pad_r(text: str, length: int, pad_char: str = ' ') -> str:
         """
         Pad input text with pad character, return left justified string of specified length.
 
         Example::
-        
+            ```
             text = pad_r('abc', 10, pad_char='X')
             print(text) 
             'abcXXXXXXXX'
-
+            ```
         Arguments:
             text: Input string to pad.
             length: Length of resulting string.
@@ -63,8 +95,8 @@ class StringHelper:
             return f'{text}{pad_char*pad_len}'
         return text    
 
-    @classmethod
-    def pad_l(cls, text: str, length: int, pad_char: str = ' ') -> str:
+    @staticmethod
+    def pad_l(text: str, length: int, pad_char: str = ' ') -> str:
         """
         Pad input text with pad character, return right-justified string of specified length.
 
@@ -72,6 +104,8 @@ class StringHelper:
         
                 text = pad_l('abc', 10, pad_char='X')
                 print(text) 
+
+                output:  
                 'XXXXXXXXabc'
 
         Arguments:
@@ -95,6 +129,35 @@ class StringHelper:
             return f'{pad_char*pad_len}{text}'
         return text    
     
-    @classmethod
-    def center(cls, text: str, length: int, pad: str = ' ') -> str:
-        pass
+    @staticmethod
+    def center(text: str, length: int, pad_char: str = ' ') -> str:
+        """
+        Center text in a string of size length with padding pad.
+
+        Args:
+            text (str): text to be centered.
+            length (int): length of resulting string.  If it is less
+              than len(text), text will be returned.
+            pad (str, optional): padding character (1). Defaults to ' '.
+
+        Returns:
+            str: text centered string
+        """
+        if len(pad_char) > 1:
+            raise ValueError('Padding character should only be 1 character in length')
+        
+        new_str = text
+        text_len = len(text)
+        if text_len < length:
+            pad_len = max(int((length - text_len) / 2) + text_len, text_len+1)
+            new_str = StringHelper.pad_l(text=new_str, length=pad_len, pad_char=pad_char)
+            new_str = StringHelper.pad_r(text=new_str, length=length, pad_char=pad_char)
+
+        return new_str
+    
+if __name__ == "__main__":
+    print(StringHelper.pad_l(' pad_l', 20, '-'))
+    print(StringHelper.pad_r('pad_r ', 20, '-'))
+    for length in range(20, len(' center ')-1, -2):
+        print(StringHelper.center(' center ', length, '-'))
+    

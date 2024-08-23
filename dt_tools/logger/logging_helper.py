@@ -72,9 +72,6 @@ def logger_wraps(*, entry=True, exit=True, level="DEBUG"):
         def foo(a, b, c):
             logger.info("Inside the function")
             return a * b * c 
-
-    Output:
-    > 
     """
     def wrapper(func):
         name = func.__name__

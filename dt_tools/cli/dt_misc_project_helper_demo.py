@@ -1,7 +1,7 @@
 from loguru import logger as LOGGER
 
 import dt_tools.logger.logging_helper as lh
-from dt_tools.os    .project_helper import ProjectHelper
+from dt_tools.os.project_helper import ProjectHelper
 
 
 def demo():
