@@ -8,6 +8,7 @@ import ctypes
 import os
 import pathlib
 import platform
+import signal
 import sys
 
 from loguru import logger as LOGGER
@@ -205,9 +206,60 @@ class OSHelper():
         LOGGER.debug(f'  returns {hresult}')
         return True if hresult > 32 else False
 
+    @classmethod
+    def disable_ctrl_c_handler(cls) -> bool:
+        """
+        Disable handler for Ctrl-C checking.
 
-    
+        Returns:
+          True if successful, else False
+        """
+        success = True
+        try:
+            signal.signal(signal.SIGINT, signal.SIG_DFL)
+        except:  # noqa: E722
+            success = False
+        return success
+
+    @classmethod
+    def enable_ctrl_c_handler(cls, handler_function: callable = None) -> bool:
+        """
+        Enable handler for Ctrl-C checking.
+        
+        If Ctrl-C occurs, and no handler function has been defined, user is prompted to continue or exit.
+
+        Arguments:
+            handler_function: Function to be called when ctrl-c is requested. (optional) 
+              If supplied, the function should be defined as follows...
+            
+              Example::
+
+                def handler_name(signum, frame):
+                    code to execute when handler is called...  
+
+        Returns:
+            True if handler successfully enabled, else False.
+
+        """
+        success = True
+        if handler_function is None:
+            handler_function = cls._interrupt_handler
+            
+        try:
+            signal.signal(signal.SIGINT, handler_function)
+        except:  # noqa: E722
+            success = False
+        return success
+
+    @classmethod
+    def _interrupt_handler(cls, signum, frame):
+        resp = ''
+        while resp not in ['c', 'e']:
+            resp = input('\nCtrl-C, Continue or Exit (c,e)? ').lower()
+            if resp == 'e':
+                os._exit(1)
+
+OSHelper.enable_ctrl_c_handler()
 if __name__ == "__main__":
     import dt_tools.cli.dt_misc_os_demo as module
-
     module.demo()
