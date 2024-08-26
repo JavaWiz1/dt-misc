@@ -13,7 +13,7 @@ DEFAULT_FILE_LOGFMT = "<green>{time:MM/DD/YY HH:mm:ss}</green> |<level>{level: <
 DEFAULT_CONSOLE_LOGFMT = "<level>{message}</level>"
 """For console logging, format- message"""
 
-def configure_logger(log_target = sys.stderr, log_level: str = "INFO", log_format: str = None, log_handle: int = 0, **kwargs) -> int:
+def configure_logger(log_target = sys.stderr, log_level: str = "INFO", log_format: str = None, brightness: bool = None, log_handle: int = 0, **kwargs) -> int:
     """
     Configure logger via loguru.
 
@@ -21,10 +21,11 @@ def configure_logger(log_target = sys.stderr, log_level: str = "INFO", log_forma
      - if reconfiguring a logger, pass the log_handle
     
     Parameters:
-        log_target: defaults to stderr, but can supply filename as well
-        log_level : TRACE|DEBUG|INFO(dflt)|ERROR|CRITICAL
-        log_format: format for output log line
-        log_handle: handle of log being re-initialized.
+        log_target: defaults to stderr, but can supply filename as well (default console/stderr)
+        log_level : TRACE|DEBUG|INFO(dflt)|ERROR|CRITICAL (default INFO)
+        log_format: format for output log line (loguru default)
+        brightness: console messages bright or dim (default True)
+        log_handle: handle of log being re-initialized. (default 0)
         other     : keyword args related to loguru logger.add() function
 
     Example::
@@ -50,6 +51,9 @@ def configure_logger(log_target = sys.stderr, log_level: str = "INFO", log_forma
     except:  # noqa: E722
         pass
     
+    if brightness is not None:
+        set_log_levels_brighness(brightness)
+        
     if not log_format:
         # Set format based on type of logger (file vs console)
         if isinstance(log_target, str):
@@ -106,18 +110,25 @@ class _InterceptHandler(logging.Handler):
 
         logger.opt(depth=depth, exception=record.exc_info).log(level, record.getMessage())
         
-@logger_wraps(level='INFO')
 def _print_log_level_definitions():
-    print(logger.level("TRACE"))
-    print(logger.level("DEBUG"))
-    print(logger.level("INFO"))
-    print(logger.level("SUCCESS"))
-    print(logger.level("WARNING"))
-    print(logger.level("ERROR"))
-    print(logger.level("CRITICAL"))
+    for lvl in ['TRACE','DEBUG','INFO','SUCCESS','WARNING','ERROR','CRITICAL']:
+        logger.log(lvl, logger.level(lvl))
 
+def set_log_levels_brighness(on: bool = True):
+    """
+    Set brighness of console log messages
+
+    Args:
+        on (bool, optional): True messages are bold (bright), False messages are dimmer. Defaults to True.
+    """
+    for lvl in ['TRACE','DEBUG','INFO','SUCCESS','WARNING','ERROR','CRITICAL']:
+        color = logger.level(lvl).color
+        if on and '<bold>' not in color:
+            color = f'{color}<bold>'
+        elif not on:
+            color = color.replace('<bold>', '')
+        logger.level(lvl, color=color)
 
 if __name__ == "__main__":
     import dt_tools.cli.dt_misc_logging_demo as module
-     
     module.demo()

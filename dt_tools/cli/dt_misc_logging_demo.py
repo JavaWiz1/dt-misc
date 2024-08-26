@@ -11,15 +11,31 @@ def demo():
     rotation=datetime.timedelta(seconds=10)
     retention= 5
 
-    lh.configure_logger()
+    l_handle = lh.configure_logger(log_level="TRACE")
     LOGGER.info('')
     LOGGER.info('dt_misc_logging_demo')
     LOGGER.info('-'*80)
     LOGGER.info('')
     LOGGER.info('Begin demo...')
+    LOGGER.info('')
+    LOGGER.info('Log Levels NORMAL')
+    lh._print_log_level_definitions()
+    lh.set_log_levels_brighness(False)
+    LOGGER.info('')
+    LOGGER.info('Log Levels DIM')
+    lh._print_log_level_definitions()
+    lh.set_log_levels_brighness(True)
+    LOGGER.info('')
+    LOGGER.info('Log Levels NORMAL/BRIGHT')
+    lh._print_log_level_definitions()
+    LOGGER.info('')
+    time.sleep(3)
+    
+    lh.configure_logger(log_level="INFO", log_handle=l_handle)
     lh.configure_logger(log_target=test1_log, log_level="DEBUG")
     lh.configure_logger(log_target=test2_log, log_level="TRACE",
                                     retention=retention, rotation=rotation)
+    
     LOGGER.info('- 30 message with random log levels will be sent to the logger.')
     LOGGER.info('- Depending on configuration, each message will be routed to the appropriate logger(s)')
     LOGGER.info('')
