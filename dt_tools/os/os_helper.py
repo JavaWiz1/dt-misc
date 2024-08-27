@@ -55,24 +55,13 @@ class OSHelper():
         return platform.system() == "Linux"
 
     @staticmethod
-    def is_raspberrypi() -> bool:
-        """
-        Check if hardware is a Raspberry PI
-
-        Returns:
-            True if Raspberry PI else False
-        """
-        if not OSHelper.is_linux():
-            return False
-        buffer = []
-        with open('/proc/cpuinfo','r') as fh:
-            buffer = fh.readlines()
-        token = [x for x in buffer if x.startswith('Hardware')]
-        hw = token[0].split(":")[1].strip()
-        if hw.startswith("BCM"):
-            return True
-        return False
-
+    def os_version() -> str:
+        return f'{platform.system()} {platform.version()}'
+    
+    @staticmethod
+    def current_user() -> str:
+        return os.getlogin()
+    
     @staticmethod
     def is_running_in_foreground():
         """
@@ -167,7 +156,7 @@ class OSHelper():
         return os.geteuid() == 0
     
     @staticmethod
-    def is_god(cls):
+    def is_god():
         """
         Is process running elevated.
 
@@ -206,6 +195,28 @@ class OSHelper():
         LOGGER.debug(f'  returns {hresult}')
         return True if hresult > 32 else False
 
+
+    # == Hardware info =============================================================================================
+    @staticmethod
+    def is_raspberrypi() -> bool:
+        """
+        Check if hardware is a Raspberry PI
+
+        Returns:
+            True if Raspberry PI else False
+        """
+        if not OSHelper.is_linux():
+            return False
+        buffer = []
+        with open('/proc/cpuinfo','r') as fh:
+            buffer = fh.readlines()
+        token = [x for x in buffer if x.startswith('Hardware')]
+        hw = token[0].split(":")[1].strip()
+        if hw.startswith("BCM"):
+            return True
+        return False
+
+    # -- ctrl-c Handler routines ===================================================================================
     @staticmethod
     def disable_ctrl_c_handler() -> bool:
         """
@@ -259,7 +270,6 @@ class OSHelper():
             if resp == 'e':
                 os._exit(1)
 
-OSHelper.enable_ctrl_c_handler()
 if __name__ == "__main__":
     import dt_tools.cli.dt_misc_os_demo as module
     module.demo()

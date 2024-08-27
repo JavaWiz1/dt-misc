@@ -76,7 +76,7 @@ class Sound():
 
         Args:
             in_token (str): File or string of text to be spoken
-            speed (float, optional): Speed (cadence) of voice. Defaults to 1.0.
+            speed (float, optional): Speed (cadence) of voice. Higher numbers faster cadence. Defaults to 1.0.
             accent (Accent, optional): Accent of speaker. Defaults to Accent.UnitedStates.
 
         Returns:

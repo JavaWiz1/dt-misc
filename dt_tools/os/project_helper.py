@@ -8,6 +8,10 @@ from loguru import logger as LOGGER
 
 
 class ProjectHelper:
+    """
+    Helper class for retrieving project info such as version and installed packages.
+
+    """
     _max_depth = 4
 
     @staticmethod
@@ -128,12 +132,16 @@ class ProjectHelper:
             distrib_name (str): Package distribution name.
               If distrib_name not found, version will be determined from pyproject.toml (if found) or
               from the newest .py file in the stack path starting at the calling program.
-            identify_src (bool, otional): Return a string indicating how the version was determined. Defaults to false
+            identify_src (bool, otional): Return a string indicating how the version was determined. Defaults to False
 
         Returns:
             Union[str,Tuple[str,str]: version or version, source.
             - version is in format major.minor.patch or YYYY.MM.DD.
             - source is one of 'importlib.metadata', 'pyproject.toml' or source filename.
+
+        Raises:
+            ValueError: if target_name is not str
+            
         """
         if not isinstance(target_name, str):
             raise ValueError(f'Invalid target name (must be str) in determine_version: {target_name}')
