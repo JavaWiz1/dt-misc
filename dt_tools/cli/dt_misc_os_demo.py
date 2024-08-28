@@ -2,6 +2,7 @@ from loguru import logger as LOGGER
 
 import dt_tools.logger.logging_helper as lh
 from dt_tools.os.os_helper import OSHelper
+import sys
 
 def demo():
     LOGGER.info('')
@@ -26,26 +27,28 @@ def demo():
 
     if OSHelper.is_windows():
         LOGGER.info('')
-        input('Press ENTER to Continue for Admin Check')
+        input('Press ENTER to Continue for Admin Check ')
         LOGGER.info('')
         LOGGER.info('Admin Check:')
         LOGGER.info('-'*40)
         if OSHelper.is_windows_admin():
             LOGGER.info('')
-            LOGGER.info('  ****************************************')
-            LOGGER.info('  ** Windows admin privileges in effect **')
-            LOGGER.info('  ****************************************')
+            LOGGER.info('  ********************************************')
+            LOGGER.info('  ** Windows admin privileges ARE in effect **')
+            LOGGER.info('  ********************************************')
             LOGGER.info('')
-            input('Press Enter to continue...')        
         else:
             LOGGER.warning('  Not Admin, Elevate privileges')
-            if OSHelper.elevate_to_admin():
+            v_python = sys.executable
+            args = [__file__]
+            if OSHelper.elevate_to_admin(v_python, args):
                 LOGGER.info('  - New prompt Shelled as admin')
             else:
                 LOGGER.error('  - Unable to elevate. (User cancelled or error)')
 
         LOGGER.info('')
         LOGGER.info('Demo commplete.')            
+        input('\nPress Enter to continue... ')
 
 if __name__ == "__main__":
     lh.configure_logger(log_format=lh.DEFAULT_CONSOLE_LOGFMT, log_level="INFO")

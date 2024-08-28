@@ -34,6 +34,8 @@ def _accent_demo():
     for accent in Accent:
         LOGGER.info(f'- {accent.name}')
         obj.speak(f'This is a test, with a {accent.name} accent.', accent=accent, speed=1.25)
+    
+    input('\nPress Enter to continue... ')
 
 def _speed_demo():
     obj = Sound()
@@ -44,6 +46,8 @@ def _speed_demo():
     for speed in [0.75, 1.0, 1.25, 1.5, 2.0]:
         LOGGER.info(f'- speed {speed}')
         obj.speak(f'This is a test, with the speed at {speed}.', speed=speed)
+    
+    input('\nPress Enter to continue... ')
 
 def _file_demo():
     obj = Sound()
@@ -56,7 +60,7 @@ def _file_demo():
     date = dt.strftime(dt.now(), "%A %B %d")
     time = dt.strftime(dt.now(), "%I:%M %p")
     text = f"Today is {date} at {time}.\n"
-    text += f"The operating systems is {OSHelper.os_version()}.\n"
+    text += f"The operating system is {OSHelper.os_version()}.\n"
     if OSHelper.is_god():
         text += f"The current user: {OSHelper.current_user()}, is running with elevated privileges.\n"
     else:
@@ -85,8 +89,8 @@ def demo():
     LOGGER.info('dt_misc_sound_helper_demo')
     LOGGER.info('-'*80)
 
-    # _accent_demo()
-    # _speed_demo()
+    _accent_demo()
+    _speed_demo()
     _file_demo()
 
     LOGGER.info('')

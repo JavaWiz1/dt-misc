@@ -13,6 +13,8 @@ def demo():
     LOGGER.info('Determine versions:')
     LOGGER.info(f'- Distribution dt-misc        : {ProjectHelper.determine_version("dt-misc", identify_src=True)}')
     LOGGER.info(f'- File:        project_helper : {ProjectHelper.determine_version("project_helper", identify_src=True)}')
+    input('\nPress Enter to continue... ')
+
     LOGGER.info('')
     LOGGER.info('Installed Packages:')
     LOGGER.info('  Package                        Version')
@@ -22,6 +24,7 @@ def demo():
 
     LOGGER.info('')
     LOGGER.info('Demo commplete.')            
+    input('\nPress Enter to continue... ')
 
 if __name__ == "__main__":
     lh.configure_logger(log_format=lh.DEFAULT_CONSOLE_LOGFMT, log_level="INFO")

@@ -10,6 +10,7 @@ import pathlib
 import platform
 import signal
 import sys
+from typing import List
 
 from loguru import logger as LOGGER
 
@@ -171,7 +172,7 @@ class OSHelper():
         return OSHelper.is_linux_root()
     
     @staticmethod
-    def elevate_to_admin() -> bool:
+    def elevate_to_admin(executable: str = None, args: List[str] = None) -> bool:
         """
         Relaunch process with elevated privileges to Windows Admin.
 
@@ -189,9 +190,12 @@ class OSHelper():
         if OSHelper.is_windows_admin():
             return True
         
+        tgt_executable = sys.executable if executable is None else executable
+        tgt_args = sys.argv if args is None else args
+
         # Re-run the program with admin rights
-        LOGGER.debug(f'Run Elevated - sys.executable: {sys.executable}   args: {sys.argv}')
-        hresult = ctypes.windll.shell32.ShellExecuteW(None, "runas", sys.executable, " ".join(sys.argv), None, 1)
+        LOGGER.debug(f'Run Elevated - executable: {tgt_executable}   args: {tgt_args}')
+        hresult = ctypes.windll.shell32.ShellExecuteW(None, "runas", tgt_executable, " ".join(tgt_args), None, 1)
         LOGGER.debug(f'  returns {hresult}')
         return True if hresult > 32 else False
 
@@ -272,4 +276,7 @@ class OSHelper():
 
 if __name__ == "__main__":
     import dt_tools.cli.dt_misc_os_demo as module
+    # print(sys.executable)
+    # print(sys.argv)
+    # print(__file__)
     module.demo()

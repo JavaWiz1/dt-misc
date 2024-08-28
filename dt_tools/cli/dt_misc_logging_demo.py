@@ -21,23 +21,28 @@ def demo():
     LOGGER.info('Log Levels NORMAL')
     lh._print_log_level_definitions()
     lh.set_log_levels_brighness(False)
+    time.sleep(3)
+
     LOGGER.info('')
     LOGGER.info('Log Levels DIM')
     lh._print_log_level_definitions()
     lh.set_log_levels_brighness(True)
+    time.sleep(3)
+
     LOGGER.info('')
     LOGGER.info('Log Levels NORMAL/BRIGHT')
     lh._print_log_level_definitions()
+    input('\nPress Enter to continue... ')
+
     LOGGER.info('')
-    time.sleep(3)
     
-    lh.configure_logger(log_level="INFO", log_handle=l_handle)
-    lh.configure_logger(log_target=test1_log, log_level="DEBUG")
-    lh.configure_logger(log_target=test2_log, log_level="TRACE",
-                                    retention=retention, rotation=rotation)
-    
+    _ = lh.configure_logger(log_level="INFO", log_handle=l_handle, brightness=False)
+    h_test1   = lh.configure_logger(log_target=test1_log, log_level="DEBUG")
+    h_test2   = lh.configure_logger(log_target=test2_log, log_level="TRACE",
+                                    retention=retention, rotation=rotation)   
+    LOGGER.info('Multiple logger test (console and 2 files)') 
     LOGGER.info('- 30 message with random log levels will be sent to the logger.')
-    LOGGER.info('- Depending on configuration, each message will be routed to the appropriate logger(s)')
+    LOGGER.info('- Based on configuration, each message will be routed to the appropriate logger(s)')
     LOGGER.info('')
     LOGGER.info('Logger configuration:')
     LOGGER.info('  Console   : CRITICAL, ERROR, WARNING, INFO')
@@ -49,7 +54,7 @@ def demo():
     LOGGER.info(f'- The {test1_log} file will get DEBUG level and above.')
     LOGGER.info(f'- The {test2_log} file will get TRACE level and above.')
     LOGGER.info(f'- The {test2_log} file is set to rotate every 10 seconds and have 5 total versions.')
-    time.sleep(3)
+    time.sleep(2)
     LOGGER.info('')
     LOGGER.trace('This TRACE message should ONLY print in test2.log')
     LOGGER.debug('This DEBUG message should print in test1.log and test2.log')
@@ -58,8 +63,12 @@ def demo():
         log_level = random.choice(['TRACE','DEBUG','INFO','WARNING','ERROR','CRITICAL'])
         LOGGER.log(log_level, f'message {i:2} {log_level}')
         time.sleep(1)
+
+    LOGGER.remove(h_test1)
+    LOGGER.remove(h_test2)
     LOGGER.info('')
     LOGGER.info('demo complete.')
+    input('\nPress Enter to continue... ')
 
 if __name__ == "__main__":
     demo()
