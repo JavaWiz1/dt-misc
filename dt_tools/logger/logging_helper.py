@@ -1,5 +1,21 @@
 """
-Logging helper methods for loguru
+Logging helper methods for loguru. (https://github.com/Delgan/loguru)
+
+Example::
+
+    import dt_tools.logger.logging_helper as lh
+    from loguru import logger as LOGGER
+
+    log_file = './mylog.log'
+
+    # File logger
+    f_handle = lh.configure_logger(log_target=log_file, log_level="DEBUG")
+    # Console logger
+    c_handle - lh.configure_logger()
+
+    LOGGER.debug('this should only show up in file logger')
+    LOGGER.info('this should show up in file logger and console')
+
 """
 import functools
 import logging

@@ -103,7 +103,7 @@
 
 <dl class="py function">
 <dt class="sig sig-object py" id="dt_tools.logger.logging_helper.configure_logger">
-<span class="sig-prename descclassname"><span class="pre">dt_tools.logger.logging_helper.</span></span><span class="sig-name descname"><span class="pre">configure_logger</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">log_target=&lt;_io.TextIOWrapper</span> <span class="pre">name='&lt;stderr&gt;'</span> <span class="pre">mode='w'</span> <span class="pre">encoding='utf-8'&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">log_level:</span> <span class="pre">str</span> <span class="pre">=</span> <span class="pre">'INFO'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">log_format:</span> <span class="pre">str</span> <span class="pre">=</span> <span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">log_handle:</span> <span class="pre">int</span> <span class="pre">=</span> <span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">**kwargs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">int</span></span></span><a class="reference internal" href="_modules/dt_tools/logger/logging_helper.html#configure_logger"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#dt_tools.logger.logging_helper.configure_logger" title="Link to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">dt_tools.logger.logging_helper.</span></span><span class="sig-name descname"><span class="pre">configure_logger</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">log_target=&lt;_io.TextIOWrapper</span> <span class="pre">name='&lt;stderr&gt;'</span> <span class="pre">mode='w'</span> <span class="pre">encoding='utf-8'&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">log_level:</span> <span class="pre">str</span> <span class="pre">=</span> <span class="pre">'INFO'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">log_format:</span> <span class="pre">str</span> <span class="pre">=</span> <span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">brightness:</span> <span class="pre">bool</span> <span class="pre">=</span> <span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">log_handle:</span> <span class="pre">int</span> <span class="pre">=</span> <span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">**kwargs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">int</span></span></span><a class="reference internal" href="_modules/dt_tools/logger/logging_helper.html#configure_logger"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#dt_tools.logger.logging_helper.configure_logger" title="Link to this definition"></a></dt>
 <dd><p>Configure logger via loguru.</p>
 <blockquote>
 <div><ul class="simple">
@@ -114,10 +114,11 @@
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>log_target</strong> – defaults to stderr, but can supply filename as well</p></li>
-<li><p><strong>log_level</strong> – TRACE|DEBUG|INFO(dflt)|ERROR|CRITICAL</p></li>
-<li><p><strong>log_format</strong> – format for output log line</p></li>
-<li><p><strong>log_handle</strong> – handle of log being re-initialized.</p></li>
+<li><p><strong>log_target</strong> – defaults to stderr, but can supply filename as well (default console/stderr)</p></li>
+<li><p><strong>log_level</strong> – TRACE|DEBUG|INFO(dflt)|ERROR|CRITICAL (default INFO)</p></li>
+<li><p><strong>log_format</strong> – format for output log line (loguru default)</p></li>
+<li><p><strong>brightness</strong> – console messages bright or dim (default True)</p></li>
+<li><p><strong>log_handle</strong> – handle of log being re-initialized. (default 0)</p></li>
 <li><p><strong>other</strong> – keyword args related to loguru logger.add() function</p></li>
 </ul>
 </dd>
@@ -157,6 +158,17 @@ Example:</p>
     <span class="k">return</span> <span class="n">a</span> <span class="o">*</span> <span class="n">b</span> <span class="o">*</span> <span class="n">c</span>
 </pre></div>
 </div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="dt_tools.logger.logging_helper.set_log_levels_brighness">
+<span class="sig-prename descclassname"><span class="pre">dt_tools.logger.logging_helper.</span></span><span class="sig-name descname"><span class="pre">set_log_levels_brighness</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">on</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/dt_tools/logger/logging_helper.html#set_log_levels_brighness"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#dt_tools.logger.logging_helper.set_log_levels_brighness" title="Link to this definition"></a></dt>
+<dd><p>Set brighness of console log messages</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>on</strong> (<em>bool</em><em>, </em><em>optional</em>) – True messages are bold (bright), False messages are dimmer. Defaults to True.</p>
+</dd>
+</dl>
 </dd></dl>
 
 </section>
