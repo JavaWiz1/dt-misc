@@ -7,7 +7,7 @@ Submodules
 ----------
 
 .. toctree::
-   :maxdepth: 4
+   :maxdepth: 5
 
    dt_tools.logger.logging_helper
    dt_tools.logger.logging_helper_legacy

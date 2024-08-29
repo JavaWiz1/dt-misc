@@ -1,9 +1,20 @@
-import dt_tools.logger.logging_helper as lh
+"""
+This module demonstrates the logging_helper modules features.
+
+- Console logging
+- File logging
+- Log colorization
+
+"""
+
 import datetime
-import time
 import random
+import time
 
 from loguru import logger as LOGGER
+
+import dt_tools.logger.logging_helper as lh
+
 
 def demo():
     test1_log = "./test1.log"

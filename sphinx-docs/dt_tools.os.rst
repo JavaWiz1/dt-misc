@@ -7,6 +7,8 @@ Submodules
 ----------
 
 .. toctree::
-   :maxdepth: 4
+   :maxdepth: 5
 
    dt_tools.os.os_helper
+   dt_tools.os.project_helper
+   dt_tools.os.sound

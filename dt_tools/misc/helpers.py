@@ -1,6 +1,3 @@
-from types import SimpleNamespace
-import json
-
 """
 General Helper Routines
 
@@ -37,48 +34,10 @@ StringHelper Examples::
     print(text)
     outputs: '-- abc ---'
 """
+
+from types import SimpleNamespace
+import json
 # =================================================================================================
-class _DictObj:
-    def __init__(self, in_dict:dict):
-        assert isinstance(in_dict, dict)
-        for key, val in in_dict.items():
-            print(f'key: {key}, val: {val}, val_type: {type(val)}')
-            if isinstance(val, (list, tuple)):
-               setattr(self, key, [_DictObj(x) if isinstance(x, dict) else x for x in val])
-            else:
-               setattr(self, key, _DictObj(val) if isinstance(val, dict) else val)
-
-    def get(self, field: str):
-        val = getattr(self, field, None)
-        if isinstance(val, _DictObj):
-            return str(val)
-        else:
-            return val
-        
-def _DictObj2(d):
-     
-    # checking whether object d is a
-    # instance of class list
-    if isinstance(d, list):
-           d = [_DictObj2(x) for x in d] 
- 
-    # if d is not a instance of dict then
-    # directly object is returned
-    if not isinstance(d, dict):
-           return d
-  
-    # declaring a class
-    class C:
-        pass
-  
-    # constructor of the class passed to obj
-    obj = C()
-  
-    for k in d:
-        obj.__dict__[k] = _DictObj2(d[k])
-  
-    return obj
-
 class ObjectHelper:
 
     @classmethod
@@ -95,7 +54,6 @@ class ObjectHelper:
         Raises:
             TypeError if in_dict is NOT a dictionary.            
         """
-        # return _DictObj(in_dict)
         obj = json.loads(json.dumps(in_dict), object_hook=lambda d: SimpleNamespace(**d))        
         return obj
     
@@ -143,6 +101,7 @@ class StringHelper:
             print(text) 
             'abcXXXXXXXX'
             ```
+
         Arguments:
             text: Input string to pad.
             length: Length of resulting string.
@@ -224,31 +183,9 @@ class StringHelper:
 
         return new_str
     
-class MyClass():
-    def __init__(self):
-        self.var1 = 'abc'
-        self.var2 = 123
-
-    def print_something(self):
-        print(f'var1: {self.var1}')
-        print(f'var2: {self.var2}')
-
-
 if __name__ == "__main__":
-    # m_class = MyClass()
-    # my_dict = ObjectHelper.to_dict(m_class)
-    # print(f'my_dict is: {my_dict}')
-    test_dict: dict = {"field1": "valueField1", "field2": {"subfield2a": "valueSubField2a", "subfield2b": "valueSubField2b"}, "field3": "valueField3"}
-    my_obj = ObjectHelper.dict_to_obj(test_dict)
-    print(f'my_obj: {my_obj}')
-    print(f'my_obj.field1: {my_obj.field1}')
-    print(f'my_obj.field2: {my_obj.field2}')
-    print(f'my_obj.field3: {my_obj.field3}')
-    print(f'my_obj.field2.subfield2a: {my_obj.field2.subfield2a}')
+    import dt_tools.logger.logging_helper as lh
+    from dt_tools.cli.dt_misc_helper_demo import demo
 
-    # print(StringHelper.pad_l(' pad_l', 20, '-'))
-    # print(StringHelper.pad_r('pad_r ', 20, '-'))
-    # print(StringHelper.center(' abc ', 10, '-'))
-    # for length in range(20, len(' center ')-1, -2):
-    #     print(StringHelper.center(' center ', length, '-'))
-    
+    lh.configure_logger(log_level="INFO", brightness=False)
+    demo()

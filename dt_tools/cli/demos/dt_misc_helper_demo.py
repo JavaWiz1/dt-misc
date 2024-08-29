@@ -1,30 +1,34 @@
+"""
+This module will execute the dt_misc helper demo.
 
+Features ObjectHelper and StringHelper classes.
+
+"""
 from loguru import logger as LOGGER
 
 import dt_tools.logger.logging_helper as lh
 from dt_tools.misc.helpers import ObjectHelper, StringHelper
 
-class Stats():
+class _Stats():
     def __init__(self, age: int, height: str, weight:int):
         self.age = age
         self.height = height
         self.weight = weight
 
-class Person():
-    def __init__(self, name: str, statistics: Stats, occupation: str):
+class _Person():
+    def __init__(self, name: str, statistics: _Stats, occupation: str):
         self.name: str = name
-        self.stats: Stats = statistics
+        self.stats: _Stats = statistics
         self.occupation: str = occupation
 
-
-person_dict = {
+_person_dict = {
     'name': "Alberto", "stats": {"age": 45, "height": "6'1\"", "weight": 175}, "occupation": "engineer"
     }
 
 def demo():
     LOGGER.info('')
     LOGGER.info('-'*40)
-    LOGGER.info('dt_misc_os_helper_demo')
+    LOGGER.info('dt_misc_helper_demo')
     LOGGER.info('-'*40)
     LOGGER.info('')
 
@@ -48,8 +52,8 @@ def demo():
     LOGGER.warning("print(ObjectHelper.to_dict(person))")
     LOGGER.info("")
     LOGGER.info("Returns:")
-    stat = Stats(20, '5\'7"', 150)
-    person = Person('Joe', stat, 'Carpenter')
+    stat = _Stats(20, '5\'7"', 150)
+    person = _Person('Joe', stat, 'Carpenter')
     LOGGER.success(f'  {ObjectHelper.to_dict(person)}')
     LOGGER.info("")
     input('Press Enter to continue')
@@ -67,7 +71,7 @@ def demo():
     LOGGER.warning("print(f'Age : {person.stats.age}')")
     LOGGER.info("")
     LOGGER.info("Returns:")
-    person = ObjectHelper.dict_to_obj(person_dict)
+    person = ObjectHelper.dict_to_obj(_person_dict)
     LOGGER.success(f"  Person object: {person}")
     LOGGER.success(f'  Name: {person.name}')
     LOGGER.success(f'  Age : {person.stats.age}')

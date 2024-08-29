@@ -1,3 +1,11 @@
+"""
+This module demonstrates the Sound class functionality.
+
+- Speak with accents.
+- Vary speech speed/cadence.
+- Speak the contents of a text file.
+
+"""
 import pathlib
 from datetime import datetime as dt
 

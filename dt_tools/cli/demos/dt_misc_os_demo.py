@@ -1,4 +1,12 @@
+"""
+This module demonstrates the OSHelper features.
+
+- OS Detection
+- Elevated privilege detection and escalation
+
+"""
 from loguru import logger as LOGGER
+
 
 import dt_tools.logger.logging_helper as lh
 from dt_tools.os.os_helper import OSHelper

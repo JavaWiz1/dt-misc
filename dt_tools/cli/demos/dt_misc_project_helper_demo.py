@@ -1,3 +1,11 @@
+"""
+This module demonstrates the ProjectHelper class features.
+
+- Determine distribion version.
+- Determine version based on file/directory name within the call stack.
+- List environment installed python packages
+
+"""
 from loguru import logger as LOGGER
 
 import dt_tools.logger.logging_helper as lh

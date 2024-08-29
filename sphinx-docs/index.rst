@@ -22,8 +22,12 @@ Includes:
      - Standardize logger (loguru) initialization and properties.
    * - :mod:`~dt_tools.logger.logging_helper_legacy`
      - Standardize logger (python) initialization and properties.
+   * - :mod:`~dt_tools.misc.helpers`
+     - String helpers and Object helpers (dict2object, object2dict).
    * - :mod:`~dt_tools.os.os_helper`
      - OS routines for identifying and working with Linux and Windows.
+   * - :mod:`~dt_tools.os.os_project_helper`
+     - Routines identifying project distribution and file versions.
    * - :mod:`~dt_tools.os.sound`
      - Routines for speaking text strings and contents of text files.
 
