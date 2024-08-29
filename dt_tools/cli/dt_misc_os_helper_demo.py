@@ -24,7 +24,7 @@ person_dict = {
 def demo():
     LOGGER.info('')
     LOGGER.info('-'*40)
-    LOGGER.info('dt_misc_helper_demo')
+    LOGGER.info('dt_misc_os_helper_demo')
     LOGGER.info('-'*40)
     LOGGER.info('')
 

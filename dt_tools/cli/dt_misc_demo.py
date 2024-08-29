@@ -2,7 +2,7 @@ from loguru import logger as LOGGER
 
 import dt_tools.cli.dt_misc_logging_demo as logging_demo
 import dt_tools.cli.dt_misc_os_demo as os_demo
-import dt_tools.cli.dt_misc_helper_demo as os_helper_demo
+import dt_tools.cli.dt_misc_os_helper_demo as os_helper_demo
 import dt_tools.cli.dt_misc_project_helper_demo as project_helper_demo
 import dt_tools.cli.dt_misc_sound_demo as sound_demo
 import dt_tools.logger.logging_helper as lh
@@ -26,7 +26,8 @@ if __name__ == '__main__':
     LOGGER.info('')
     LOGGER.remove(l_handle)
     for name, demo_module in DEMOS.items():
-        demo_module.demo()
-        LOGGER.info('') 
+        if input(f'Run {name} (y/n)? ').lower() == 'y':
+            demo_module.demo()
+            LOGGER.info('') 
                                                       
     LOGGER.success("That's all folks!!")

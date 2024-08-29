@@ -9,7 +9,7 @@ from dt_tools.os.project_helper import ProjectHelper
 from dt_tools.os.sound import Accent, Sound
 import requests
 
-DEMO_SPEED = 1.75
+DEMO_SPEED = 1.25
 
 def _get_quote_of_the_day() -> str:
     url = "https://zenquotes.io/api/random"
