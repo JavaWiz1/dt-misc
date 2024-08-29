@@ -23,8 +23,9 @@ person_dict = {
 
 def demo():
     LOGGER.info('')
+    LOGGER.info('-'*40)
     LOGGER.info('dt_misc_helper_demo')
-    LOGGER.info('-'*80)
+    LOGGER.info('-'*40)
     LOGGER.info('')
 
     LOGGER.info("Object to Dictionary demo")
@@ -44,7 +45,7 @@ def demo():
     LOGGER.info("stat = Stats(20, '5\'7\"', 150)")
     LOGGER.info("person = Person('Joe', stat, 'Carpenter')")
     LOGGER.info("")
-    LOGGER.info("print(ObjectHelper.to_dict(person))")
+    LOGGER.warning("print(ObjectHelper.to_dict(person))")
     LOGGER.info("")
     LOGGER.info("Returns:")
     stat = Stats(20, '5\'7"', 150)
@@ -61,9 +62,9 @@ def demo():
     LOGGER.info("")
     LOGGER.info("person = (ObjectHelper.dict_to_obj(person_dict)")
     LOGGER.info("")
-    LOGGER.info("print(f'Person object: {person}')")
-    LOGGER.info("print(f'Name: {person.name}')")
-    LOGGER.info("print(f'Age : {person.stats.age}')")
+    LOGGER.warning("print(f'Person object: {person}')")
+    LOGGER.warning("print(f'Name: {person.name}')")
+    LOGGER.warning("print(f'Age : {person.stats.age}')")
     LOGGER.info("")
     LOGGER.info("Returns:")
     person = ObjectHelper.dict_to_obj(person_dict)

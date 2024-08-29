@@ -83,7 +83,7 @@ class Sound():
             int: 0 if successful else non-zero
         """
         while self._is_speaking:
-            LOGGER.debug('waiting..')   
+            LOGGER.trace('waiting..')   
             sleep(1)
         self._is_speaking = True
         check_file = pathlib.Path(in_token)
@@ -93,7 +93,7 @@ class Sound():
             is_file = False
         text = check_file.read_text() if is_file else in_token
 
-        sound_file = './da_sound.mp3'
+        sound_file = './dt_sound.mp3'
         # tld top level domain for English
         # com.au (Australian), co.uk (United Kingdom), us (United States),    ca (Canada), 
         # co.in (India),       ie (Ireland),           co.za (South Africa),  com.ng (Nigeria)
@@ -102,7 +102,7 @@ class Sound():
         
         display_text = textwrap.wrap(text=text, width=100, initial_indent='- Speak: ', subsequent_indent='         ')
         for line in display_text:
-            LOGGER.debug(line)
+            LOGGER.trace(line)
         ret = self._play(sound_file, speed)
         self._is_speaking = False
 
@@ -120,7 +120,7 @@ class Sound():
             int: 0 if successful else non-zero
         """
         while self._is_speaking:
-            LOGGER.debug('waiting..')
+            LOGGER.trace('waiting..')
             sleep(1)
         self._is_speaking = True
         result = self._play(sound_file, speed)
@@ -135,7 +135,7 @@ class Sound():
             LOGGER.warning(msg)
             return -1
         
-        LOGGER.debug(f'Playing file: {self._VLC} {sound_file}')
+        LOGGER.debug(f'Playing file: {self._VLC} --intf dummy --rate {speed} --play-and-exit {sound_file}')
         if helper.is_windows():
             ret = os.system(f'"{self._VLC}" --intf dummy --rate {speed} --play-and-exit {sound_file}')
         else:
@@ -152,13 +152,8 @@ class Sound():
         return vlc_loc
     
 if __name__ == "__main__":
-    obj = Sound()
-    obj.speak('This is a test')
-    obj.speak('This is a test, with an australian accent.', accent=Accent.Australia)
-    obj.speak('This is a test, with a british accent.', accent=Accent.UnitedKingdom)
-    obj.speak('This is a test, with a canadian accent.', accent=Accent.Canada)
-    obj.speak('This is a test, with a indian accent.', accent=Accent.India)
-    obj.speak('This is a test, with a irish accent.', accent=Accent.Ireland)
-    obj.speak('This is a test, with a nigerian accent.', accent=Accent.Nigeria)
-    obj.speak('This is a test, with a south african accent.', accent=Accent.SouthAfrica)
-    obj.speak('C:/Workspace/ws_photo/da-photo/research/test.txt')
+    import dt_tools.logger.logging_helper as lh
+    from dt_tools.cli.dt_misc_sound_demo import demo
+
+    lh.configure_logger(log_level="INFO")
+    demo()

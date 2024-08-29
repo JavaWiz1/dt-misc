@@ -6,11 +6,12 @@ import sys
 
 def demo():
     LOGGER.info('')
-    LOGGER.info('dt_misc_os_demo')
-    LOGGER.info('-'*80)
-    LOGGER.info('')
-    LOGGER.info('Determine OS:')
     LOGGER.info('-'*40)
+    LOGGER.info('dt_misc_os_demo')
+    LOGGER.info('-'*40)
+    LOGGER.info('')
+    LOGGER.info('Determine OS')
+    LOGGER.info('------------')
     if OSHelper.is_raspberrypi():
         LOGGER.info('- Running on Raspberry Pi')
     if OSHelper.is_linux():
@@ -19,18 +20,18 @@ def demo():
         LOGGER.success('- Running on Windows')
 
     LOGGER.info('')
-    LOGGER.info('Check if Executable is available:')
-    LOGGER.info('-'*40)
+    LOGGER.info('Check if Executable is available')
+    LOGGER.info('--------------------------------')
     for pgm in ['gitx', 'git']:
         exe = OSHelper.is_executable_available(pgm)
         LOGGER.log("ERROR" if exe is None else "SUCCESS", f'  {pgm:8} : {exe}')
 
     if OSHelper.is_windows():
         LOGGER.info('')
-        input('Press ENTER to Continue for Admin Check ')
+        input('Press ENTER to Continue')
         LOGGER.info('')
-        LOGGER.info('Admin Check:')
-        LOGGER.info('-'*40)
+        LOGGER.info('Administrator Check')
+        LOGGER.info('-------------------')
         if OSHelper.is_windows_admin():
             LOGGER.info('')
             LOGGER.info('  ********************************************')

@@ -270,7 +270,12 @@ class OSHelper():
     def _interrupt_handler(signum, frame):
         resp = ''
         while resp not in ['c', 'e']:
-            resp = input('\nCtrl-C, Continue or Exit (c,e)? ').lower()
+            try:
+                resp = input('\nCtrl-C, Continue or Exit (c,e)? ').lower()
+            except RuntimeError:
+                LOGGER.error('\nCtrl-C, program exiting...')
+                resp = 'e'
+
             if resp == 'e':
                 os._exit(1)
 

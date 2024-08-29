@@ -12,25 +12,28 @@ def demo():
     retention= 5
 
     l_handle = lh.configure_logger(log_level="TRACE")
-    LOGGER.info('')
+    LOGGER.info('-'*40)
     LOGGER.info('dt_misc_logging_demo')
-    LOGGER.info('-'*80)
+    LOGGER.info('-'*40)
     LOGGER.info('')
-    LOGGER.info('Begin demo...')
+    LOGGER.info('log to console demo...')
     LOGGER.info('')
-    LOGGER.info('Log Levels NORMAL')
+    LOGGER.info('Log Levels DEFAULT')
+    LOGGER.info('------------------')
     lh._print_log_level_definitions()
-    lh.set_log_levels_brighness(False)
-    time.sleep(3)
+    time.sleep(5)
 
-    LOGGER.info('')
-    LOGGER.info('Log Levels DIM')
-    lh._print_log_level_definitions()
     lh.set_log_levels_brighness(True)
-    time.sleep(3)
-
     LOGGER.info('')
-    LOGGER.info('Log Levels NORMAL/BRIGHT')
+    LOGGER.info('Log Levels BRIGHTNESS enabled')
+    LOGGER.info('-----------------------------')
+    lh._print_log_level_definitions()
+    time.sleep(5)
+
+    lh.set_log_levels_brighness(False)
+    LOGGER.info('')
+    LOGGER.info('Log Levels BRIGHTNESS disabled')
+    LOGGER.info('------------------------------')
     lh._print_log_level_definitions()
     input('\nPress Enter to continue... ')
 
@@ -41,6 +44,7 @@ def demo():
     h_test2   = lh.configure_logger(log_target=test2_log, log_level="TRACE",
                                     retention=retention, rotation=rotation)   
     LOGGER.info('Multiple logger test (console and 2 files)') 
+    LOGGER.info('------------------------------------------')
     LOGGER.info('- 30 message with random log levels will be sent to the logger.')
     LOGGER.info('- Based on configuration, each message will be routed to the appropriate logger(s)')
     LOGGER.info('')
@@ -54,7 +58,7 @@ def demo():
     LOGGER.info(f'- The {test1_log} file will get DEBUG level and above.')
     LOGGER.info(f'- The {test2_log} file will get TRACE level and above.')
     LOGGER.info(f'- The {test2_log} file is set to rotate every 10 seconds and have 5 total versions.')
-    time.sleep(2)
+    time.sleep(3)
     LOGGER.info('')
     LOGGER.trace('This TRACE message should ONLY print in test2.log')
     LOGGER.debug('This DEBUG message should print in test1.log and test2.log')
@@ -67,7 +71,7 @@ def demo():
     LOGGER.remove(h_test1)
     LOGGER.remove(h_test2)
     LOGGER.info('')
-    LOGGER.info('demo complete.')
+    LOGGER.info('logging demo complete.')
     input('\nPress Enter to continue... ')
 
 if __name__ == "__main__":
