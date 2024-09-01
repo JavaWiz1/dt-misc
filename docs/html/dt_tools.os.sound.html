@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>dt_tools.os.sound module &mdash; dt-misc  documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=19f00094" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="_static/jquery.js?v=5d32c60e"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="_static/documentation_options.js?v=5929fcd5"></script>
+        <script src="_static/doctools.js?v=9a2dae69"></script>
+        <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="prev" title="dt_tools.os.project_helper module" href="dt_tools.os.project_helper.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            dt-misc
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="dt_tools.html">dt_tools namespace</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="dt_tools.html#subpackages">Subpackages</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="dt_tools.logger.html">dt_tools.logger namespace</a></li>
+<li class="toctree-l3"><a class="reference internal" href="dt_tools.misc.html">dt_tools.misc namespace</a></li>
+<li class="toctree-l3 current"><a class="reference internal" href="dt_tools.os.html">dt_tools.os namespace</a><ul class="current">
+<li class="toctree-l4 current"><a class="reference internal" href="dt_tools.os.html#submodules">Submodules</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">dt-misc</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="dt_tools.html">dt_tools namespace</a></li>
+          <li class="breadcrumb-item"><a href="dt_tools.os.html">dt_tools.os namespace</a></li>
+      <li class="breadcrumb-item active">dt_tools.os.sound module</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/dt_tools.os.sound.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="module-dt_tools.os.sound">
+<span id="dt-tools-os-sound-module"></span><h1>dt_tools.os.sound module<a class="headerlink" href="#module-dt_tools.os.sound" title="Link to this heading"></a></h1>
+<p>Speak a string of text or speak the contents of a text file.</p>
+<p>Currently, these routines expect VLC to be installed.</p>
+<dl>
+<dt>Example::</dt><dd><p>from dt_tools.os.sound import Accent, Sound</p>
+<p>obj = Sound()
+obj.speak(‘This is a test’)
+obj.speak(‘This is a test, with an australian accent.’, accent=Accent.Australia)</p>
+</dd>
+</dl>
+<div class="admonition-todo admonition" id="id1">
+<p class="admonition-title">Todo</p>
+<p>Update to be cross platform without relying on VLC</p>
+</div>
+<dl class="py class">
+<dt class="sig sig-object py" id="dt_tools.os.sound.Accent">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">dt_tools.os.sound.</span></span><span class="sig-name descname"><span class="pre">Accent</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">names</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">module</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">qualname</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">start</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">boundary</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/dt_tools/os/sound.html#Accent"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#dt_tools.os.sound.Accent" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Enum</span></code></p>
+<p>Accent codes for speaking</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="dt_tools.os.sound.Accent.Australia">
+<span class="sig-name descname"><span class="pre">Australia</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'com.au'</span></em><a class="headerlink" href="#dt_tools.os.sound.Accent.Australia" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="dt_tools.os.sound.Accent.Canada">
+<span class="sig-name descname"><span class="pre">Canada</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'ca'</span></em><a class="headerlink" href="#dt_tools.os.sound.Accent.Canada" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="dt_tools.os.sound.Accent.India">
+<span class="sig-name descname"><span class="pre">India</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'co.in'</span></em><a class="headerlink" href="#dt_tools.os.sound.Accent.India" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="dt_tools.os.sound.Accent.Ireland">
+<span class="sig-name descname"><span class="pre">Ireland</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'ie'</span></em><a class="headerlink" href="#dt_tools.os.sound.Accent.Ireland" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="dt_tools.os.sound.Accent.Nigeria">
+<span class="sig-name descname"><span class="pre">Nigeria</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'com.ng'</span></em><a class="headerlink" href="#dt_tools.os.sound.Accent.Nigeria" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="dt_tools.os.sound.Accent.SouthAfrica">
+<span class="sig-name descname"><span class="pre">SouthAfrica</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'co.za'</span></em><a class="headerlink" href="#dt_tools.os.sound.Accent.SouthAfrica" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="dt_tools.os.sound.Accent.UnitedKingdom">
+<span class="sig-name descname"><span class="pre">UnitedKingdom</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'co.uk'</span></em><a class="headerlink" href="#dt_tools.os.sound.Accent.UnitedKingdom" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="dt_tools.os.sound.Accent.UnitedStates">
+<span class="sig-name descname"><span class="pre">UnitedStates</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'us'</span></em><a class="headerlink" href="#dt_tools.os.sound.Accent.UnitedStates" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="dt_tools.os.sound.Sound">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">dt_tools.os.sound.</span></span><span class="sig-name descname"><span class="pre">Sound</span></span><a class="reference internal" href="_modules/dt_tools/os/sound.html#Sound"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#dt_tools.os.sound.Sound" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Class to speak a string of text (or contents of a text file).</p>
+<p>This class relies on VLC being installed, it works on both Windows and Linux.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>FileNotFoundError</strong> – If file is not found.</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="dt_tools.os.sound.Sound.play">
+<span class="sig-name descname"><span class="pre">play</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sound_file</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">speed</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1.0</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">int</span></span></span><a class="reference internal" href="_modules/dt_tools/os/sound.html#Sound.play"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#dt_tools.os.sound.Sound.play" title="Link to this definition"></a></dt>
+<dd><p>Play a sound file.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>sound_file</strong> (<em>str</em>) – Filename</p></li>
+<li><p><strong>speed</strong> (<em>float</em><em>, </em><em>optional</em>) – Speed (cadence) of voice. Defaults to 1.0.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>0 if successful else non-zero</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="dt_tools.os.sound.Sound.speak">
+<span class="sig-name descname"><span class="pre">speak</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">in_token</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">speed</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">accent</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#dt_tools.os.sound.Accent" title="dt_tools.os.sound.Accent"><span class="pre">Accent</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">Accent.UnitedStates</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">int</span></span></span><a class="reference internal" href="_modules/dt_tools/os/sound.html#Sound.speak"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#dt_tools.os.sound.Sound.speak" title="Link to this definition"></a></dt>
+<dd><p>Speak the text string or contents of the file</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>in_token</strong> (<em>str</em>) – File or string of text to be spoken</p></li>
+<li><p><strong>speed</strong> (<em>float</em><em>, </em><em>optional</em>) – Speed (cadence) of voice. Higher numbers faster cadence. Defaults to 1.0.</p></li>
+<li><p><strong>accent</strong> (<a class="reference internal" href="#dt_tools.os.sound.Accent" title="dt_tools.os.sound.Accent"><em>Accent</em></a><em>, </em><em>optional</em>) – Accent of speaker. Defaults to Accent.UnitedStates.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>0 if successful else non-zero</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="dt_tools.os.project_helper.html" class="btn btn-neutral float-left" title="dt_tools.os.project_helper module" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, JavaWiz1@hotmail.com.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
