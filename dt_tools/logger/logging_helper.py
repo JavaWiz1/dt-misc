@@ -20,14 +20,35 @@ Example::
 import functools
 import logging
 import sys
+import time
 
 from loguru import logger
 
-DEFAULT_FILE_LOGFMT = "<green>{time:MM/DD/YY HH:mm:ss}</green> |<level>{level: <8}</level>|<cyan>{name:10}</cyan>|<cyan>{line:3}</cyan>| <level>{message}</level>"
+# Format variables:
+# Variable    Description
+# ----------- ------------------------------------------------------------
+# elapsed     The time elapsed since the start of the program
+# exception   The formatted exception if any, None otherwise
+# extra       The dict of attributes bound by the user (see bind())
+# file        The file where the logging call was made
+# function    The function from which the logging call was made
+# level       The severity used to log the message
+# line        The line number in the source code
+# message     The logged message (not yet formatted)
+# module      The module where the logging call was made
+# name        The __name__ where the logging call was made
+# process     The process in which the logging call was made
+# thread      The thread in which the logging call was made
+# time        The aware local time when the logging call was made
+
+DEFAULT_FILE_LOGFMT = "<green>{time:MM/DD/YY HH:mm:ss}</green> |<level>{level: <8}</level>|<cyan>{name:18}</cyan>|<cyan>{line:4}</cyan>| <level>{message}</level>"
 """For file logging, format- timestamp \|level\|method name\|lineno\|message"""
 
 DEFAULT_CONSOLE_LOGFMT = "<level>{message}</level>"
 """For console logging, format- message"""
+
+DEFAULT_DEBUG_LOGFMT =  "<green>{time:HH:mm:ss}</green> |<level>{level: <8}</level>|<cyan>{function:20}</cyan>|<cyan>{line:4}</cyan>| <level>{message}</level>"
+"""For console/file logging, timestamp \|level\|method name\|lineno\|message"""
 
 def configure_logger(log_target = sys.stderr, log_level: str = "INFO", log_format: str = None, brightness: bool = None, log_handle: int = 0, **kwargs) -> int:
     """
@@ -81,34 +102,6 @@ def configure_logger(log_target = sys.stderr, log_level: str = "INFO", log_forma
 
     return hndl
 
-def logger_wraps(*, entry=True, exit=True, level="DEBUG"):
-    """
-    function decorator wrapper to log entry and exit
-
-    When decorator enabled, messages will automatically be included in the the log:
-    Example::    
-
-        @logger_wraps()
-        def foo(a, b, c):
-            logger.info("Inside the function")
-            return a * b * c 
-    """
-    def wrapper(func):
-        name = func.__name__
-
-        @functools.wraps(func)
-        def wrapped(*args, **kwargs):
-            logger_ = logger.opt(depth=1)
-            if entry:
-                logger_.log(level, "Entering '{}' (args={}, kwargs={})", name, args, kwargs)
-            result = func(*args, **kwargs)
-            if exit:
-                logger_.log(level, "Exiting '{}' (result={})", name, result)
-            return result
-
-        return wrapped
-
-    return wrapper
 
 class _InterceptHandler(logging.Handler):
     def emit(self, record):
@@ -145,6 +138,66 @@ def set_log_levels_brighness(on: bool = True):
             color = color.replace('<bold>', '')
         logger.level(lvl, color=color)
 
+# == Logging Decorators =======================================================================
+def logger_wraps(*, entry=True, exit=True, level="DEBUG"):
+    """
+    function decorator wrapper to log entry and exit
+
+    When decorator enabled, messages will automatically be included in the the log:
+    Example::    
+
+        @logger_wraps()
+        def foo(a, b, c):
+            logger.info("Inside the function")
+            return a * b * c 
+
+    """
+    def wrapper(func):
+        name = func.__name__
+
+        @functools.wraps(func)
+        def wrapped(*args, **kwargs):
+            logger_ = logger.opt(depth=1)
+            if entry:
+                logger_.log(level, "Entering '{}' (args={}, kwargs={})", name, args, kwargs)
+            result = func(*args, **kwargs)
+            if exit:
+                logger_.log(level, "Exiting '{}' (result={})", name, result)
+            return result
+
+        return wrapped
+
+    return wrapper
+
+def timer_wraps(*, level="DEBUG"):
+    """
+    function decorator wrapper to log function execution time
+
+    Example::
+
+        @timer_wraps(level='INFO')
+        def foo(a,b,c):
+          logger.info('inside the function')
+          time.sleep(1)
+          return a * b * c
+
+    """
+    def wrapper(func):
+        name = func.__name__
+
+        @functools.wraps(func)
+        def wrapped(*args, **kwargs):
+            """time_wrapper's doc string"""
+            start = time.perf_counter()
+            result = func(*args, **kwargs)
+            time_elapsed = time.perf_counter() - start
+            logger.info(f"TIMER: Function: {name}, Time: {time_elapsed:.3f} seconds")
+            return result
+        return wrapped
+    
+    return wrapper
+
+
 if __name__ == "__main__":
-    import dt_tools.cli.dt_misc_logging_demo as module
+    import dt_tools.cli.demos.dt_misc_demo as module
     module.demo()

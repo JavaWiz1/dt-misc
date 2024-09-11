@@ -15,6 +15,16 @@ from loguru import logger as LOGGER
 
 import dt_tools.logger.logging_helper as lh
 
+@lh.logger_wraps(level='INFO')
+def demo_logger_wraps():
+    LOGGER.info('Inside the demo_logger_wraps_function')
+    time.sleep(1)
+
+@lh.timer_wraps(level='INFO')
+def demo_timer_wraps():
+    LOGGER.info('Inside the demo_timer_wraps_function')
+    delay = time.time() % 10
+    time.sleep(delay)
 
 def demo():
     test1_log = "./test1.log"
@@ -74,14 +84,22 @@ def demo():
     for i in range(31):
         log_level = random.choice(['TRACE','DEBUG','INFO','WARNING','ERROR','CRITICAL'])
         LOGGER.log(log_level, f'message {i:2} {log_level}')
-        time.sleep(1)
+        time.sleep(.25)
 
+    print('Removing file handlers, resetting console to debug format.')
     LOGGER.remove(h_test1)
     LOGGER.remove(h_test2)
     # Reset console handler
-    lh.configure_logger(log_level="INFO", log_handle=h_console, brightness=False)
+    h_console = lh.configure_logger(log_level="INFO", log_format=lh.DEFAULT_DEBUG_LOGFMT, log_handle=h_console, brightness=False)
     LOGGER.info('')
-    LOGGER.info('logging demo complete.')
+    LOGGER.info('decorator: logger_wraps()')
+    demo_logger_wraps()
+    LOGGER.info('')
+    LOGGER.info('decorator: timer_wraps()')
+    demo_timer_wraps()
+    h_console = lh.configure_logger(log_level="INFO", log_handle=h_console, brightness=False)
+    LOGGER.info('')
+    LOGGER.success('logging demo complete.')
     input('\nPress Enter to continue... ')
 
 if __name__ == "__main__":
