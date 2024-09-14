@@ -10,9 +10,13 @@ import pathlib
 import platform
 import signal
 import sys
-from typing import List
+from datetime import datetime as dt
+from typing import List, Tuple
 
+import psutil
 from loguru import logger as LOGGER
+
+from dt_tools.misc.helpers import ObjectHelper as ohelper
 
 
 class OSHelper():
@@ -219,6 +223,200 @@ class OSHelper():
         if hw.startswith("BCM"):
             return True
         return False
+    
+    @staticmethod
+    def sysinfo(include_all: bool = False, include_cpu: bool = False, include_memory: bool = False, include_disk: bool = False) -> dict:
+        # TODO:  gather stats
+        # system    : name, ip, processor, OS, OSVersion, Manufacturer, uptime
+        # cpu       : cores
+        # memory    : Space (total, used, free), type
+        # disk      : Space (Total,Used,Free), disks[]
+        # io
+        info = {}
+        info['system'] = OSHelper._get_local_system_info()
+        if include_all or include_cpu:
+            info['cpu'] = OSHelper._get_cpu_info()
+        if include_all or include_memory:
+            info['memory'] = OSHelper._get_memory_info()
+        if include_all or include_disk:
+            info['disk'] = OSHelper._get_disk_info()
+
+        return info
+    
+    @staticmethod
+    def bytes_to_printformat(num_bytes: int) -> str:
+        power = 2**10
+        n = 0
+        power_labels = {0: '', 1: 'K', 2: 'M', 3: 'G', 4: 'T'}
+        while num_bytes > power:
+            num_bytes /= power
+            n += 1
+        return f"{num_bytes:.2f} {power_labels[n]}B"        
+    
+    @staticmethod
+    def bytes_to_kb(num_bytes: int, num_decimals: int=0) -> float:
+        kb =  num_bytes / 1024
+        if num_decimals >= 0:
+            return float(f'{kb:.{num_decimals}f}')
+        return kb
+    
+    @staticmethod
+    def bytes_to_mb(num_bytes: int, num_decimals: int=0) -> float:
+        mb =  OSHelper.bytes_to_kb(num_bytes) / 1024
+        if num_decimals >= 0:
+            return float(f'{mb:.{num_decimals}f}')
+        return mb
+    
+    @staticmethod
+    def bytes_to_gb(num_bytes: int, num_decimals: int=0) -> float:
+        gb = OSHelper.bytes_to_mb(num_bytes) / 1024
+        if num_decimals >= 0:
+            return float(f'{gb:.{num_decimals}f}')
+        return gb
+
+    @staticmethod
+    def bytes_to_tb(num_bytes: int, num_decimals: int=0) -> float:
+        tb =  OSHelper.bytes_to_gb(num_bytes) / 1024
+        if num_decimals >= 0:
+            return float(f'{tb:.{num_decimals}f}')
+        return tb
+
+    @staticmethod
+    def elapsed_time(start_date: dt, end_date: dt) -> Tuple[int, int, int, int]:
+        """
+        Convert seconds into (days, hours, mins, sec)
+
+        Args:
+            seconds (int): number of seconds to convert
+
+        Returns:
+            Tuple[int, int, int, int]: Days, Hours, Minutes, Seconds
+        """
+        duration = end_date - start_date if start_date < end_date else start_date - end_date
+        duration_secs = duration.total_seconds()
+
+        days    = divmod(duration_secs, 86400)        # Get days (without [0]!)
+        hours   = divmod(days[1], 3600)               # Use remainder of days to calc hours
+        minutes = divmod(hours[1], 60)                # Use remainder of hours to calc minutes
+        seconds = divmod(minutes[1], 1)         
+        return (int(days[0]), int(hours[0]), int(minutes[0]), int(seconds[0]))
+
+    @staticmethod
+    def _get_local_system_info() -> dict:
+        # uname system (os), node (name), release (osversion)
+        import socket
+        info = {}
+        info['hostname'] = platform.node()
+        info['host_fqdn'] = socket.getfqdn()
+        info['ip'] = socket.gethostbyname(platform.node())  # validate this works on all platforms
+        info['platform'] = platform.system()
+        if OSHelper.is_linux():
+            osr = platform.freedesktop_os_release()
+            info['os'] = osr['NAME']
+            info['os_ver'] = osr['VERSION']
+        else:
+            info['os'] = platform.system()
+            info['os_ver'] = platform.platform()
+        info['os_kernel'] = platform.uname().release
+        info['machine_type'] = platform.uname().machine
+        bt = psutil.boot_time()
+        boot_time_str = dt.fromtimestamp(bt).strftime("%Y-%m-%d %H:%M:%S")
+        boot_time = dt.strptime(boot_time_str, "%Y-%m-%d %H:%M:%S")
+        days, hours, minutes, seconds = OSHelper.elapsed_time(boot_time, dt.now())
+        info['last_boot_time'] = boot_time_str
+        if days > 0:
+            info['uptime'] = f"{days}d:{hours}h:{minutes}m:{seconds}s"
+        elif hours > 0:
+            info['uptime'] = f"{hours}h:{minutes}m:{seconds}s"
+        elif minutes > 0:
+            info['uptime'] = f"{minutes}m:{seconds}s"
+        else:
+            info['uptime'] = f"{seconds} secs"
+
+        return info
+
+    @staticmethod
+    def _get_cpu_info() -> dict:
+        info = {}
+        info['processor'] = platform.processor()
+        info['cores_physical'] = psutil.cpu_count(logical=False)
+        info['cores_logical'] = psutil.cpu_count(logical=True)
+        cpu_freq = psutil.cpu_freq()
+        info['freq_min'] = cpu_freq.min
+        info['freq_max'] = cpu_freq.max
+        cpu_pct = psutil.cpu_times_percent(interval=1.0)
+        info['pct_user'] = cpu_pct.user
+        info['pct_system'] = cpu_pct.system
+        info['pct_idle'] = cpu_pct.idle
+        info['pct_interrupt'] = cpu_pct.interrupt
+
+        return info
+
+    @staticmethod
+    def _get_memory_info() -> dict:
+        info = {}
+        info['swap_total'] = psutil.swap_memory().total
+        info['swap_used'] = psutil.swap_memory().used
+        info['swap_free'] = psutil.swap_memory().free
+        info['swap_pct_used'] = psutil.swap_memory().percent
+
+        info['virtual_total'] = psutil.virtual_memory().total
+        info['virtual_used'] = psutil.virtual_memory().used
+        info['virtual_free'] = psutil.virtual_memory().free
+        info['virtual_pct_used'] = psutil.virtual_memory().percent
+        
+        return info
+
+    @staticmethod
+    def _get_disk_info() -> dict:
+        info = {}
+        disk_list = []
+        usage_list = []
+        for partition in psutil.disk_partitions():
+            entry = {}
+            entry['device'] = partition.device
+            entry['mountpoint'] = partition.mountpoint
+            entry['fstype'] = partition.fstype
+            entry['mount_opts'] = partition.opts
+            try:
+                du = psutil.disk_usage(partition.device)
+                entry['total'] = du.total
+                entry['used'] = du.used
+                entry['free'] = du.free
+                entry['used_pct'] = du.percent
+            except OSError:
+                pass
+            disk_list.append(entry)
+        info['partitions'] = disk_list
+        
+        # for disk in info['partitions']:
+        #     entry = {}
+        #     dev_name = disk['device']
+        #     try:
+        #         du = psutil.disk_usage(dev_name)
+        #         entry['device'] = dev_name
+        #         entry['total'] = du.total
+        #         entry['used'] = du.used
+        #         entry['free'] = du.free
+        #         entry['used_pct'] = du.percent
+        #         usage_list.append(entry)
+        #     except OSError:
+        #         pass
+        # info['usage'] = usage_list
+
+        io = psutil.disk_io_counters()
+        info['io_read_bytes'] = io.read_bytes
+        info['io_write_bytes'] = io.write_bytes
+        info['io_read_cnt'] = io.read_count
+        info['io_write_cnt'] = io.write_count
+        info['io_read_ms'] = io.read_time
+        info['io_write_ms'] = io.write_time
+        return info
+    
+    @staticmethod
+    def _get_io_info() -> dict:
+        info = {}
+        return info
 
     # -- ctrl-c Handler routines ===================================================================================
     @staticmethod
@@ -280,8 +478,30 @@ class OSHelper():
                 os._exit(1)
 
 if __name__ == "__main__":
-    import dt_tools.cli.dt_misc_os_demo as module
-    # print(sys.executable)
-    # print(sys.argv)
-    # print(__file__)
-    module.demo()
+    import json
+
+    import dt_tools.cli.demos.dt_misc_os_demo as module
+    
+    print(json.dumps(OSHelper.sysinfo(include_cpu=False, include_disk=True, include_memory=False), indent=2))
+    info = OSHelper.sysinfo(include_disk=True)
+    info_obj = ohelper.dict_to_obj(info)
+    print('Device       Type            Total      Used       Free    % Used')
+    print('------------ ---------- ---------- ---------- ---------- --------')
+    for de in info_obj.disk.partitions:
+        # print(de)
+        total = '-'
+        used = '-'
+        free = '-'
+        used_pct = '-'
+        type = de.fstype if len(de.fstype) > 0 else de.mount_opts
+        if hasattr(de, 'total'):
+            total = OSHelper.bytes_to_printformat(de.total)
+            used = OSHelper.bytes_to_printformat(de.used)
+            free = OSHelper.bytes_to_printformat(de.free)
+            used_pct = f'{de.used_pct}%'
+        print(f'{de.device:12} {type:10} {total:>10} {used:>10} {free:>10} {used_pct:>8}')
+    # print(OSHelper.bytes_to_kb(num_bytes, 2))
+    # print(OSHelper.bytes_to_mb(num_bytes, 3))
+    # print(OSHelper.bytes_to_gb(num_bytes, 1))
+    # print(OSHelper.bytes_to_tb(num_bytes, 0))
+    # module.demo()
