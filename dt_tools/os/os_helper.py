@@ -333,6 +333,10 @@ class OSHelper():
         else:
             info['uptime'] = f"{seconds} secs"
 
+        # TODO: BIOS 
+        #       windows -  wmic bios get xxxxx,xxxx
+        #       linux~  - /sys/class/dmi/id/ (many bios files)
+        #       raspi   - no bios, but lots of info here: https://www.geeksforgeeks.org/how-to-find-all-the-hardware-information-in-raspberry-pi-os/
         return info
 
     @staticmethod
@@ -371,7 +375,6 @@ class OSHelper():
     def _get_disk_info() -> dict:
         info = {}
         disk_list = []
-        usage_list = []
         for partition in psutil.disk_partitions():
             entry = {}
             entry['device'] = partition.device
@@ -386,24 +389,10 @@ class OSHelper():
                 entry['used_pct'] = du.percent
             except OSError:
                 pass
+            # disk_dict[partition.device] = entry
             disk_list.append(entry)
         info['partitions'] = disk_list
         
-        # for disk in info['partitions']:
-        #     entry = {}
-        #     dev_name = disk['device']
-        #     try:
-        #         du = psutil.disk_usage(dev_name)
-        #         entry['device'] = dev_name
-        #         entry['total'] = du.total
-        #         entry['used'] = du.used
-        #         entry['free'] = du.free
-        #         entry['used_pct'] = du.percent
-        #         usage_list.append(entry)
-        #     except OSError:
-        #         pass
-        # info['usage'] = usage_list
-
         io = psutil.disk_io_counters()
         info['io_read_bytes'] = io.read_bytes
         info['io_write_bytes'] = io.write_bytes
@@ -479,12 +468,11 @@ class OSHelper():
 
 if __name__ == "__main__":
     import json
-
-    import dt_tools.cli.demos.dt_misc_os_demo as module
     
     print(json.dumps(OSHelper.sysinfo(include_cpu=False, include_disk=True, include_memory=False), indent=2))
     info = OSHelper.sysinfo(include_disk=True)
     info_obj = ohelper.dict_to_obj(info)
+    print(info_obj.disk)
     print('Device       Type            Total      Used       Free    % Used')
     print('------------ ---------- ---------- ---------- ---------- --------')
     for de in info_obj.disk.partitions:

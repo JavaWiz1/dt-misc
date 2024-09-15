@@ -35,13 +35,16 @@ StringHelper Examples::
     outputs: '-- abc ---'
 """
 
-from types import SimpleNamespace
 import json
+from types import SimpleNamespace
+from typing import Dict, Union
+
+
 # =================================================================================================
 class ObjectHelper:
 
     @classmethod
-    def dict_to_obj(cls, in_dict: dict):
+    def dict_to_obj(cls, in_dict: dict) -> Union[SimpleNamespace, Dict]:
         """
         Convert a dictionary to an object
 
@@ -185,7 +188,7 @@ class StringHelper:
     
 if __name__ == "__main__":
     import dt_tools.logger.logging_helper as lh
-    from dt_tools.cli.dt_misc_helper_demo import demo
-
+    import dt_tools.cli.demos.dt_misc_helper_demo as demo
     lh.configure_logger(log_level="INFO", brightness=False)
+    
     demo()

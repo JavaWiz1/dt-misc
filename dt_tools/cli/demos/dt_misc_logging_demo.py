@@ -101,6 +101,7 @@ def demo():
     LOGGER.info('')
     LOGGER.success('logging demo complete.')
     input('\nPress Enter to continue... ')
-
+    LOGGER.remove(h_console)
+    
 if __name__ == "__main__":
     demo()
