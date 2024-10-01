@@ -41,9 +41,12 @@ if __name__ == '__main__':
     LOGGER.info('')
     for name, demo_module in DEMOS.items():
         if input(f'Run {name} (y/n)? ').lower() == 'y':
-            LOGGER.remove(l_handle)
-            demo_module.demo()
-            l_handle = lh.configure_logger(log_level="INFO", brightness=False)
+            if demo_module == logging_demo:
+                # Logging demo sets up and removes it's own loggers 
+                LOGGER.remove(l_handle)
+            demo_module.demo()  
+            if demo_module == logging_demo:
+                l_handle = lh.configure_logger(log_level="INFO", brightness=False)
             LOGGER.info('') 
                                                       
     LOGGER.success("That's all folks!!")
