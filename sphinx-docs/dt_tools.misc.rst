@@ -9,4 +9,7 @@ Submodules
 .. toctree::
    :maxdepth: 5
 
-   dt_tools.misc.helpers
+   dt_tools.misc.census_geoloc
+   dt_tools.misc.geoloc
+   dt_tools.misc.sound
+   dt_tools.misc.weather

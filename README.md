@@ -5,7 +5,9 @@ dt-misc is a python library used to support the set of dt_tools packages:
  - dt-net  [[repo]](https://github.com/JavaWiz1/dt-net)  [[docs]](https://htmlpreview.github.io/?https://github.com/JavaWiz1/dt-net/blob/develop/docs/html/index.html)
  - dt-cli-tools  [[repo]](https://github.com/JavaWiz1/dt-cli-tools)  [[docs]](https://htmlpreview.github.io/?https://github.com/JavaWiz1/dt-cli-tools/blob/develop/docs/html/index.html)
 
-It contains helper packages for logging, os detection and other common utilities.
+and others.
+
+It contains helper packages for Geolocation, Weather and Text-to-Speech (TSS).
 
 ## Installation
 

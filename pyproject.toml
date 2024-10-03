@@ -1,7 +1,7 @@
 [tool.poetry]
 name = "dt-misc"
 version = "0.1.6"
-description = "Misc. helpers (logging, os, ...) for dt-* packages"
+description = "Misc. utility packages (geoloc, weather, sound, ...)"
 authors = ["Al DAmico <JavaWiz1@hotmail.com>"]
 readme = "README.md"
 license = "MIT"
@@ -21,7 +21,8 @@ include = ["CHANGELOG.md"]
 python = "^3.10"
 loguru = "^0.7.2"
 gtts = "^2.5.2"
-psutil = "^6.0.0"
+dt-foundation = {path = "../dt-foundation", develop = true }
+# dt-foundation = "*"
 
 [[tool.poetry.source]]
 name = "PyPI"
@@ -31,7 +32,6 @@ priority = "primary"
 name = "piwheels"
 url = "https://www.piwheels.org/simple"
 priority = "supplemental"
-
 
 
 [tool.poetry.group.dev.dependencies]

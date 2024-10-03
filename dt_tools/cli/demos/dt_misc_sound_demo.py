@@ -14,7 +14,7 @@ from loguru import logger as LOGGER
 import dt_tools.logger.logging_helper as lh
 from dt_tools.os.os_helper import OSHelper
 from dt_tools.os.project_helper import ProjectHelper
-from dt_tools.os.sound import Accent, Sound
+from dt_tools.misc.sound import Accent, Sound
 import requests
 
 DEMO_SPEED = 1.25
@@ -65,7 +65,8 @@ def _file_demo():
     LOGGER.info('Text file sound demo')
     LOGGER.info('--------------------')
     Sound().speak('This demo will create a text file and translate it into speech.', speed=DEMO_SPEED)
-    test_file = pathlib.Path("./dt-sound-test.txt")
+    # test_file = pathlib.Path("./dt-sound-test.txt")
+    test_file = pathlib.Path(OSHelper().get_temp_filename(prefix='dt-', dotted_suffix='.txt', target_dir='.'))
     LOGGER.info(f'- Generate text file [{test_file}].')
     date = dt.strftime(dt.now(), "%A %B %d")
     time = dt.strftime(dt.now(), "%I:%M %p")
@@ -93,14 +94,16 @@ def _file_demo():
     LOGGER.success(f'Sound().speak("{test_file}", speed{DEMO_SPEED})')
     Sound().speak(test_file, speed=DEMO_SPEED)
     
+    test_file.unlink()
+
 def demo():
     OSHelper.enable_ctrl_c_handler()
     LOGGER.info('-'*80)
     LOGGER.info('dt_misc_sound_helper_demo')
     LOGGER.info('-'*80)
 
-    _accent_demo()
-    _speed_demo()
+    # _accent_demo()
+    # _speed_demo()
     _file_demo()
 
     LOGGER.info('')

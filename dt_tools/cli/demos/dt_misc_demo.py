@@ -1,24 +1,18 @@
 """
 This module will execute the dt_misc package demonstrations, which include:
 
-- Logging demo
-- OS demo
-- Project helper demo
-- Helper demo
-- Sound demo
+- GeoLocation
+- Weather (current, forecast, alerts)
+- Sound (TTS - text to speech)
 
 To Run:
     ``poetry run python -m dt_tools.cli.demos.dt_misc_demo``
 
 """
 from loguru import logger as LOGGER
-
-import dt_tools.cli.demos.dt_misc_helper_demo as os_helper_demo
-import dt_tools.cli.demos.dt_misc_logging_demo as logging_demo
-import dt_tools.cli.demos.dt_misc_os_demo as os_demo
-import dt_tools.cli.demos.dt_misc_project_helper_demo as project_helper_demo
+import dt_tools.cli.demos.dt_geoloc_demo as geoloc_demo
+import dt_tools.cli.demos.dt_weather_demo as weather_demo
 import dt_tools.cli.demos.dt_misc_sound_demo as sound_demo
-import dt_tools.cli.demos.dt_misc_sysinfo_demo as sysinfo_demo
 import dt_tools.logger.logging_helper as lh
 from dt_tools.os.os_helper import OSHelper
 from dt_tools.os.project_helper import ProjectHelper
@@ -26,11 +20,8 @@ from dt_tools.os.project_helper import ProjectHelper
 if __name__ == '__main__':
     OSHelper.enable_ctrl_c_handler()
     DEMOS = {
-        "Logging demo": logging_demo,
-        "OS demo": os_demo,
-        "System Info": sysinfo_demo,
-        "OS Helper demo": os_helper_demo,
-        "Project Helper demo": project_helper_demo,
+        "GeoLocation Demo": geoloc_demo,
+        "Weather demo": weather_demo,
         "Sound demo": sound_demo
     }
     l_handle = lh.configure_logger(log_level="INFO", brightness=False)
@@ -41,12 +32,7 @@ if __name__ == '__main__':
     LOGGER.info('')
     for name, demo_module in DEMOS.items():
         if input(f'Run {name} (y/n)? ').lower() == 'y':
-            if demo_module == logging_demo:
-                # Logging demo sets up and removes it's own loggers 
-                LOGGER.remove(l_handle)
             demo_module.demo()  
-            if demo_module == logging_demo:
-                l_handle = lh.configure_logger(log_level="INFO", brightness=False)
             LOGGER.info('') 
                                                       
     LOGGER.success("That's all folks!!")

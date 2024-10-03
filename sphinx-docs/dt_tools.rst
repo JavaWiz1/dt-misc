@@ -9,6 +9,4 @@ Subpackages
 .. toctree::
    :maxdepth: 5
 
-   dt_tools.logger
    dt_tools.misc
-   dt_tools.os
