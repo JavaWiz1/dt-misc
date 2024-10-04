@@ -1,23 +1,29 @@
-# current weather
-# summary forecast
-# detailed forecast
-# alerts
+"""
+weather.py - current, forecasts, alerts
 
-# text
-# speak
+This module leverages 3rd party service (weatherapi.com) to retrieve detailed weather
+information based on GeloLocation (latitude, longitude).
+
+Location information can be retrieved based on:
+- GeoLocation (lat/lon)
+- US address (string or components (street, city, state, zip))
+- Internet IP address
+
+"""
 import json
 import pathlib
-import threading
+# import threading
 from dataclasses import dataclass
 from datetime import datetime as dt
 
+import dt_tools.net.net_helper as nh
 import requests
 from loguru import logger as LOGGER
 
-import dt_tools.net.net_helper as nh
-from dt_tools.misc.census_geoloc import GeoLocation, GeoLocationAddress
+from dt_tools.misc.census_geoloc import GeoLocation
 from dt_tools.misc.helpers import ApiTokenHelper
-from dt_tools.misc.sound import Accent, Sound
+# from dt_tools.misc.sound import Accent, Sound
+from dt_tools.misc.weather.common import WeatherLocation
 
 """
 Air Quality Index
@@ -38,8 +44,8 @@ WIND_DIRECTION_DICT = {
     "W": "West",
 }
 
-class WEATHER_SETTINGS:
-    API_KEY = ApiTokenHelper.get_api_token(ApiTokenHelper.API_WEATHERINFO)
+class CURRENT_WEATHER_SETTINGS:
+    API_KEY = ApiTokenHelper.get_api_token(ApiTokenHelper.API_WEATHER_INFO)
     API_AVAILABLE = False if API_KEY is None else True
     BASE_URL = "http://api.weatherapi.com/v1" # 1 million calls per month
     CURRENT_URI = "current.json"
@@ -47,17 +53,16 @@ class WEATHER_SETTINGS:
     SEARCH_URI = "search.json"
 
 @dataclass
-class WeatherLocation():
-    latitude: float = 0.0
-    longitude: float = 0.0
-    location_name: str = None
-    location_region: str = None
+class CurrentConditions():
+    """
+    Weather condition class
 
-    def is_initialized(self) -> bool:
-        return False if (self.latitude == 0.0 and self.longitude == 0.0) else True
+    Raises:
+        ValueError: _description_
 
-@dataclass
-class WeatherConditions():
+    Returns:
+        _type_: _description_
+    """
     location: WeatherLocation = None
     condition: str = None
     _condition_icon: str = None
@@ -74,8 +79,8 @@ class WeatherConditions():
     aqi: int = None
     aqi_text: str = None
     _connect_retries: int = 0
-    _speak_thread_id: int = None
-    _speak_accent: Accent = Accent.UnitedStates
+    # _speak_thread_id: int = None
+    # _speak_accent: Accent = Accent.UnitedStates
     _disabled: bool = True
 
     def __post_init__(self):
@@ -89,59 +94,114 @@ class WeatherConditions():
         pass
 
     def set_location_via_lat_lon(self, lat: float, lon: float) -> bool:
-        if WEATHER_SETTINGS.API_AVAILABLE:
-            self.location = WeatherLocation(lat, lon)
-            self.refresh_if_stale()
+        """
+        Set weather location based on Geolocation
 
+        Args:
+            lat (float): Latitude
+            lon (float): Longitude
+
+        Returns:
+            bool: True if location successfully set.
+        """
+        if CURRENT_WEATHER_SETTINGS.API_AVAILABLE:
+            self.location = WeatherLocation(lat, lon)
+            return self.refresh()
+    
+        return False
+    
     def set_location_via_census_address(self, street: str, city: str = None, state: str = None, zipcd: str = None) -> bool:
-        if WEATHER_SETTINGS.API_AVAILABLE:
+        """
+        Set location based on address: street, city, state or street, zipcd
+
+        The GeoLocation will be derived based on the address.  NOTE: only US addresses are allowed.
+
+        Args:
+            street (str): House number and street name
+            city (str, optional): City. Defaults to None.
+            state (str, optional): State. Defaults to None.
+            zipcd (str, optional): Zip code. Defaults to None.
+
+        Returns:
+            bool: True if address is resolved and GeoLocation identified, else False
+        """
+        if CURRENT_WEATHER_SETTINGS.API_AVAILABLE:
             geo_locs = GeoLocation.lookup_address(street=street, city=city, state=state, zipcd=zipcd)
             if len(geo_locs) > 0:
                 loc = geo_locs[0]
                 self.location = WeatherLocation(latitude=loc.latitude, longitude=loc.longitude, location_name=loc.address)
-                return self.refresh_if_stale()
+                return self.refresh()
     
         return False
     
     def set_location_via_address(self, address: str) -> bool:
+        """
+        Set location based on address string
+
+        GeoLocation will be derived based on the address. 
+
+        Args:
+            address (str): Address string - i.e. 123 somestree, somecity, somestate, some zip
+
+        Returns:
+            bool: True if address is resolved and GeoLocation identified, else False
+        """
         from dt_tools.misc.geoloc import GeoLocation as GeoLoc
-        if WEATHER_SETTINGS.API_AVAILABLE:
+        if CURRENT_WEATHER_SETTINGS.API_AVAILABLE:
             geo = GeoLoc()
             if geo.get_location_via_address_string(address):
                 self.location = WeatherLocation(latitude=geo.lat, longitude=geo.lon, location_name=geo.display_name)
-                return self.refresh_if_stale()
+                return self.refresh()
     
         return False
 
     def set_location_via_ip(self, ip: str = None) -> bool:
-        if WEATHER_SETTINGS.API_AVAILABLE:
+        """
+        Set location based on IP address
+
+        The IP should be resolvable on the internet (i.e. local addresses won't work)
+
+        Args:
+            ip (str, optional): IP to resolve, if None, The device external address (i.e. from
+                service provider will be used). Defaults to None.
+
+        Returns:
+            bool: True if IP is resovled to GeoLocation, else False
+        """
+        if CURRENT_WEATHER_SETTINGS.API_AVAILABLE:
             if ip is None:
                 lat, lon = nh.get_lat_lon_for_ip(ip=nh.get_wan_ip()) # self._get_lat_lon_from_ip(nh.get_wan_ip())
             else:
                 lat, lon = nh.get_lat_lon_for_ip(ip=ip) # self._get_lat_lon_from_ip(ip)
 
             self.location = WeatherLocation(lat, lon)
-            return self.refresh_if_stale()
+            return self.refresh()
     
         return False
 
-    @property
-    def accent(self) -> Accent:
-        return self._speak_accent
+    # @property
+    # def accent(self) -> Accent:
+    #     return self._speak_accent
     
-    @accent.setter
-    def accent(self, id: str):
-        try:
-            speak_accent = Accent[id]
-        except Exception:
-            LOGGER.warning(f'Conditions() invalid accent id [{id}], defaulting to US.')
-            speak_accent = Accent.UnitedStates
+    # @accent.setter
+    # def accent(self, id: str):
+    #     try:
+    #         speak_accent = Accent[id]
+    #     except Exception:
+    #         LOGGER.warning(f'Conditions() invalid accent id [{id}], defaulting to US.')
+    #         speak_accent = Accent.UnitedStates
 
-        LOGGER.warning(f'Conditions() setting accent to: {speak_accent}')
-        self._speak_accent = speak_accent
+    #     LOGGER.warning(f'Conditions() setting accent to: {speak_accent}')
+    #     self._speak_accent = speak_accent
 
     @property
     def disabled(self) -> bool:
+        """
+        Check if location defined, API and connection is available
+
+        Returns:
+            bool: False if connection is available, else False
+        """
         return self._disabled
     
     @property
@@ -161,10 +221,15 @@ class WeatherConditions():
 
     @property
     def lat_long(self) -> str:
-
         return f'{self.location.latitude},{self.location.longitude}'
 
     def to_string(self) -> str:
+        """
+        String representation of the current weather.
+
+        Returns:
+            str: _description_
+        """
         degree = chr(176)
         text: str = f'Current weather conditions for {self.loc_name} {self.loc_region}. [{self.lat_long}]\n\n'
         text += f'{self.condition}\n'    
@@ -176,7 +241,21 @@ class WeatherConditions():
         text += f'  Air Quality {self.aqi_text} [{self.aqi}]\n'    
         return text
     
-    def refresh_if_stale(self, elapsed_mins: int = 15) -> bool:
+    def refresh(self, ignore_cache: bool = False) -> bool:
+        """
+        Refresh current weather
+
+        Args:
+            ignore_cache (bool, optional): _description_. Defaults to False.
+
+        Returns:
+            bool: _description_
+        """
+        if ignore_cache:
+            return self._refresh_if_stale(elapsed_mins=0)
+        return self._refresh_if_stale()
+    
+    def _refresh_if_stale(self, elapsed_mins: int = 15) -> bool:
         """
         Refresh weather data if stale.  Default is 15 monutes.
         """
@@ -191,12 +270,12 @@ class WeatherConditions():
                 return False
         try:
             # will fail if elapsed/last_update not set
-            LOGGER.warning(f'- Weather being refreshed, last update {elapsed:.2f} minutes ago at {self.last_update}')            
+            LOGGER.debug(f'- Weather being refreshed, last update {elapsed:.2f} minutes ago at {self.last_update}')            
         except Exception as ex:
             LOGGER.trace(f'no prior weather {ex}')
-            LOGGER.warning('- Weather being refreshed, last update Unknown')
+            LOGGER.debug('- Weather being refreshed, last update Unknown')
 
-        target_url=f'{WEATHER_SETTINGS.BASE_URL}/{WEATHER_SETTINGS.CURRENT_URI}?key={WEATHER_SETTINGS.API_KEY}&q={self.lat_long}&aqi=yes'
+        target_url=f'{CURRENT_WEATHER_SETTINGS.BASE_URL}/{CURRENT_WEATHER_SETTINGS.CURRENT_URI}?key={CURRENT_WEATHER_SETTINGS.API_KEY}&q={self.lat_long}&aqi=yes'
         LOGGER.debug(f'WEATHER url: {target_url}')
         try:
             resp = requests.get(target_url)
@@ -205,6 +284,7 @@ class WeatherConditions():
                 self._load_current_conditions(resp.json())
                 self._disabled = False
                 return True
+
         except Exception as ex:
             LOGGER.warning('Unable to call weather api')
             LOGGER.warning(f'  URL   : {target_url}')
@@ -213,7 +293,6 @@ class WeatherConditions():
             if self._connect_retries > 3:
                 LOGGER.error('Unable to reconnect to weather, disabled feature.')
                 self._disabled = True
-                # cfg.weather_enabled = False
             return False
                 
         LOGGER.error(f'Request URL: {target_url}')
@@ -221,56 +300,58 @@ class WeatherConditions():
         self._disabled = True
         return False
 
-    def speak_current_conditions(self) -> int:
-        if self._speak_thread_id is not None and self._speak_thread_id > 0:
-            LOGGER.warning('Speak thread in process... Ignoring request.')
-            return False
+    # def speak_current_conditions(self) -> int:
+    #     if self._speak_thread_id is not None and self._speak_thread_id > 0:
+    #         LOGGER.warning('Speak thread in process... Ignoring request.')
+    #         return False
         
-        t = threading.Thread(target=self._speak_current_conditions_thread)
-        t.start()
-        self._speak_thread_id = t.native_id
+    #     t = threading.Thread(target=self._speak_current_conditions_thread)
+    #     t.start()
+    #     self._speak_thread_id = t.native_id
 
-    def _speak_current_conditions_thread(self):
-        wind_direction = self._speak_direction(self.wind_direction)
-        # cloud_cover_pct = self._speak_normalize_number(weather.cloud_cover_pct)
-        temp = self._speak_normalize_number(self.temp)
-        feels_like = self._speak_normalize_number(self.feels_like)
-        humidity_pct = self._speak_normalize_number(self.humidity_pct)
-        # precipitation = self._speak_normalize_number(weather.precipitation)
-        visibility_mi = self._speak_normalize_number(self.visibility_mi)
-        wind_speed_mph = self._speak_normalize_number(self.wind_speed_mph)
-        wind_gust_mph = self._speak_normalize_number(self.wind_gust_mph)        
-        time_now = dt.now().strftime("%I:%M%p")
-        text = f'Current weather conditions at {time_now}.  '
-        text += f'{self.condition}.  Temperature {temp}, feels like {feels_like}.  '
-        text += f'{humidity_pct}% humidity, air quality is {self.aqi_text}.  '
-        text += f'Visibility {visibility_mi} miles.  '
-        text += f'Wind {wind_direction} {wind_speed_mph} mph, gusts up to {wind_gust_mph} mph.'
-        ret = Sound().speak(text, speed=1.25, accent=self.accent)
-        LOGGER.success('Speak current weather conditions complete.')
-        self._speak_thread_id = None
-        return ret
+    # def _speak_current_conditions_thread(self):
+    #     # TODO: allow speak template
+
+    #     wind_direction = self._speak_direction(self.wind_direction)
+    #     # cloud_cover_pct = self._speak_normalize_number(weather.cloud_cover_pct)
+    #     temp = self._speak_normalize_number(self.temp)
+    #     feels_like = self._speak_normalize_number(self.feels_like)
+    #     humidity_pct = self._speak_normalize_number(self.humidity_pct)
+    #     # precipitation = self._speak_normalize_number(weather.precipitation)
+    #     visibility_mi = self._speak_normalize_number(self.visibility_mi)
+    #     wind_speed_mph = self._speak_normalize_number(self.wind_speed_mph)
+    #     wind_gust_mph = self._speak_normalize_number(self.wind_gust_mph)        
+    #     time_now = dt.now().strftime("%I:%M%p")
+    #     text = f'Current weather conditions at {time_now}.  '
+    #     text += f'{self.condition}.  Temperature {temp}, feels like {feels_like}.  '
+    #     text += f'{humidity_pct}% humidity, air quality is {self.aqi_text}.  '
+    #     text += f'Visibility {visibility_mi} miles.  '
+    #     text += f'Wind {wind_direction} {wind_speed_mph} mph, gusts up to {wind_gust_mph} mph.'
+    #     ret = Sound().speak(text, speed=1.25, accent=self.accent)
+    #     LOGGER.success('Speak current weather conditions complete.')
+    #     self._speak_thread_id = None
+    #     return ret
     
-    @property
-    def speaking(self) -> bool:
-        return False if self._speak_thread_id is None else True
+    # @property
+    # def speaking(self) -> bool:
+    #     return False if self._speak_thread_id is None else True
     
-    def _speak_normalize_number(self, token) -> str:
-        try:
-            num = float(token)
-            frac = num % 1
-            resp = str(token).split('.')[0] if frac == 0 else token
-        except Exception as ex:
-            print(ex)
-            resp = token 
+    # def _speak_normalize_number(self, token) -> str:
+    #     try:
+    #         num = float(token)
+    #         frac = num % 1
+    #         resp = str(token).split('.')[0] if frac == 0 else token
+    #     except Exception as ex:
+    #         print(ex)
+    #         resp = token 
         
-        return resp
+    #     return resp
 
-    def _speak_direction(self, token: str) -> str:
-        resp = ''
-        for char in token:
-            resp += f' {WIND_DIRECTION_DICT[char]}'
-        return resp.lstrip()
+    # def _speak_direction(self, token: str) -> str:
+    #     resp = ''
+    #     for char in token:
+    #         resp += f' {WIND_DIRECTION_DICT[char]}'
+    #     return resp.lstrip()
 
     def _load_current_conditions(self, blob: dict):
         l_block: dict = blob['location']
@@ -321,34 +402,27 @@ class WeatherConditions():
     
 if __name__ == "__main__":
     import dt_tools.logger.logging_helper as lh
-    from time import sleep
 
-    lh.configure_logger(log_level='INFO', log_format=lh.DEFAULT_CONSOLE_LOGFMT)
+    lh.configure_logger(log_level='INFO', log_format=lh.DEFAULT_CONSOLE_LOGFMT, brightness=False)
 
-    weather = WeatherConditions()
+    weather = CurrentConditions()
     weather.set_location_via_address(address='4833 Nahane Way, Saint Johns, FL, 32259')
-    LOGGER.info(f'Weather via address: {weather.loc_name}\n{weather.to_string()}')
-    weather.speak_current_conditions()
-    while weather.speaking:
-        print('.', end='')
-        sleep(.25)
-    print('')
+    LOGGER.success(f'Weather via address: {weather.loc_name}')
+    LOGGER.info(f'  {weather.to_string()}')
 
-    weather = WeatherConditions()
+    weather = CurrentConditions()
     weather.set_location_via_census_address(street='4833 Nahane Way', city='St. Johns', state='FL')
-    LOGGER.info(f'Weather via address: {weather.loc_name}\n{weather.to_string()}')
+    LOGGER.success(f'Weather via address: {weather.loc_name}')
+    LOGGER.info(f'  {weather.to_string()}')
     
-    weather = WeatherConditions()
+    weather = CurrentConditions()
     weather.set_location_via_ip()
-    LOGGER.info(f'Weather via IP:\n{weather.to_string()}')
+    LOGGER.success('Weather via IP:')
+    LOGGER.info(f'  {weather.to_string()}')
 
-    weather = WeatherConditions()
+    weather = CurrentConditions()
     geo = GeoLocation.lookup_address(street='1812 Edgewood', city="Berkley", state='MI')
     weather.set_location_via_lat_lon(geo[0].latitude, geo[0].longitude)
-    LOGGER.info(f'Weather via lat/lon:\n{weather.to_string()}')
-    weather.speak_current_conditions()
-    while weather.speaking:
-        print('.', end='')
-        sleep(.25)
-    print('')
+    LOGGER.success('Weather via lat/lon:')
+    LOGGER.info(f'  {weather.to_string()}')
 

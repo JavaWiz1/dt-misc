@@ -21,9 +21,9 @@ include = ["CHANGELOG.md"]
 python = "^3.10"
 loguru = "^0.7.2"
 gtts = "^2.5.2"
-# dt-foundation = {path = "../dt-foundation", develop = true }
-dt-foundation = "*"
-dt-net = "^0.1.16"
+dt-foundation = {path = "../dt-foundation", develop = true }
+dt-net = {path = "../dt-net", develop = true }
+# dt-net = "*"
 
 [[tool.poetry.source]]
 name = "PyPI"
