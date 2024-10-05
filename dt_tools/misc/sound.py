@@ -17,16 +17,14 @@ ToDo:
 """
 import os
 import pathlib
-import tempfile
 import textwrap
+import threading
 from enum import Enum
 from time import sleep
 
+from dt_tools.os.os_helper import OSHelper as helper
 from gtts import gTTS
 from loguru import logger as LOGGER
-
-from dt_tools.os.os_helper import OSHelper as helper
-
 
 class Accent(Enum):
     """Accent codes for speaking"""
@@ -40,7 +38,7 @@ class Accent(Enum):
     Nigeria = "com.ng"
 
 
-class Sound():
+class Sound(object):
     """
     Class to speak a string of text (or contents of a text file).
 
@@ -50,72 +48,78 @@ class Sound():
         FileNotFoundError: If file is not found.
 
     """
-    _instance = None
-    _is_speaking = False
+    _locked: bool = False
+    _speak_thread_id: int = None
+    _VLC: str = None
 
     def __new__(cls):
         # Make this class a singleton
-        if cls._instance is None:
-            LOGGER.debug('creating sound class')
+        if not hasattr(cls, '_instance'):
             cls._instance = super(Sound, cls).__new__(cls)
-        return cls._instance
-    
-    def __init__(self):
-        if helper.is_windows():
-            start_path = pathlib.Path(os.environ['ProgramFiles'])
-            exe = "vlc.exe"
-        else:
-            start_path = pathlib.Path('/usr/bin')
-            exe = 'cvlc'
-        
-        self._VLC = self._file_location(start_path, exe)
-        if self._VLC is None:
+
+        if not cls._is_VLC_installed():
             raise FileNotFoundError('VLC is required to use this module.  Unable to locate VLC module')
+        return cls._instance
+
+
+    # @classmethod
+    # def __init__(cls):       
+    #     if not cls._is_VLC_installed():
+    #         raise FileNotFoundError('VLC is required to use this module.  Unable to locate VLC module')
     
-    def speak(self, in_token: str, speed: float = 1.0, accent: Accent = Accent.UnitedStates, delete_mp3:bool = True) -> int:
+
+    # -- Public Functions -------------------------------------------------------------------------------------------
+    @classmethod
+    def speak(cls, in_token: str, speed: float = 1.0, accent: Accent = Accent.UnitedStates, ignore_in_progress: bool = False, wait: bool = True, delete_mp3:bool = True) -> bool:
         """
         Speak the text string or contents of the file
+
+        NOTE: Speech will block until done if already speaking.
 
         Args:
             in_token (str): File or string of text to be spoken
             speed (float, optional): Speed (cadence) of voice. Higher numbers faster cadence. Defaults to 1.0.
             accent (Accent, optional): Accent of speaker. Defaults to Accent.UnitedStates.
+            ignore_in_progress: (bool, optional): Ignore request if speech is already in progress. Defaults to False
+            wait: (bool, optional): Wait for speech to finish before returning. Defaults to True.
+            delete_mp3 (bool, optional): Remove generate mp3 file. Defaults to True
 
         Returns:
-            int: 0 if successful else non-zero
+            bool: True if successful else False
         """
-        while self._is_speaking:
-            LOGGER.trace('waiting..')   
-            sleep(1)
-        self._is_speaking = True
-        check_file = pathlib.Path(in_token)
-        try:
-            is_file = check_file.is_file()
-        except OSError:
-            is_file = False
-        text = check_file.read_text() if is_file else in_token
-        t_file = tempfile.NamedTemporaryFile(mode='w+b',prefix='dt-', suffix='.mp3', delete=True)
-        sound_file = t_file.name
-        t_file.close()
-        # tld top level domain for English
-        # com.au (Australian), co.uk (United Kingdom), us (United States),    ca (Canada), 
-        # co.in (India),       ie (Ireland),           co.za (South Africa),  com.ng (Nigeria)
-        tts_obj = gTTS(text=text, lang='en', tld=accent.value, slow=False)
-        tts_obj.save(sound_file)
+        if cls.is_speaking() and ignore_in_progress:
+            LOGGER.warning(f'Speak thread [{cls._speak_thread_id}] in process... Ignoring request.')
+            return False
         
-        display_text = textwrap.wrap(text=text, width=100, initial_indent='- Speak: ', subsequent_indent='         ')
-        for line in display_text:
-            LOGGER.trace(line)
-        ret = self._play(sound_file, speed)
-        try:
-            pathlib.Path(sound_file).unlink()
-        except Exception as ex:
-            LOGGER.error(f'Unable to delete sound file [{sound_file}] - {repr(ex)}')
-        self._is_speaking = False
+        if cls.is_speaking():
+            LOGGER.debug(f'Waiting to speak... {in_token}')
+            while cls.is_speaking():
+                sleep(.25)
 
-        return ret
+        cls._locked = True
+        text = pathlib.Path(in_token).read_text() if cls._is_file(in_token) else in_token
 
-    def play(self, sound_file: str, speed: float = 1.0) -> int:
+        kwargs = {'text': text, 'speed': speed, 'accent': accent, 'delete_mp3': delete_mp3}
+        t = threading.Thread(target=cls._speak, kwargs=kwargs)
+        t.start()
+        cls._speak_thread_id = t.native_id
+        
+        if wait:
+            while cls.is_speaking():
+                sleep(.25)
+
+    @classmethod
+    def is_speaking(cls) -> bool:
+        """
+        Is speech in progress...
+
+        Returns:
+            bool: True if speech is occuring, else False
+        """
+        return True if cls._speak_thread_id is not None or cls._locked else False
+    
+    @classmethod
+    def play(cls, sound_file: str, speed: float = 1.0) -> int:
         """
         Play a sound file.
 
@@ -126,15 +130,42 @@ class Sound():
         Returns:
             int: 0 if successful else non-zero
         """
-        while self._is_speaking:
+        while cls.is_speaking():
             LOGGER.trace('waiting..')
             sleep(1)
-        self._is_speaking = True
-        result = self._play(sound_file, speed)
-        self._is_speaking = False
+        cls._locked = True
+        result = cls._play(sound_file, speed)
+        cls._locked = False
         return result
     
-    def _play(self, sound_file: str, speed: float = 1.0) -> int:
+    # -- Private Functions -------------------------------------------------------------------------------------------
+    @classmethod
+    def _speak(cls, text: str, speed: float, accent: Accent, delete_mp3) -> int:
+        sound_file = helper.get_temp_filename(prefix='dt-', dotted_suffix='.mp3')
+        LOGGER.debug(f'Speak thread {cls._speak_thread_id} started.')
+        # tld top level domain for English
+        # com.au (Australian), co.uk (United Kingdom), us (United States),    ca (Canada), 
+        # co.in (India),       ie (Ireland),           co.za (South Africa),  com.ng (Nigeria)
+        tts_obj = gTTS(text=text, lang='en', tld=accent.value, slow=False)
+        LOGGER.debug(f'save {sound_file}')
+        tts_obj.save(sound_file)
+        
+        display_text = textwrap.wrap(text=text, width=100, initial_indent='- Speak: ', subsequent_indent='         ')
+        for line in display_text:
+            LOGGER.trace(line)
+        ret = cls._play(sound_file, speed)
+        try:
+            pathlib.Path(sound_file).unlink()
+        except Exception as ex:
+            LOGGER.error(f'Unable to delete sound file [{sound_file}] - {repr(ex)}')
+
+        LOGGER.debug(f'Speak thread {cls._speak_thread_id} ended.')
+        cls._speak_thread_id = None
+        cls._locked = False
+        return ret
+
+    @classmethod
+    def _play(cls, sound_file: str, speed: float = 1.0) -> int:
         '''Play the sound file'''
         check_file = pathlib.Path(sound_file)
         if not check_file.is_file():
@@ -142,24 +173,39 @@ class Sound():
             LOGGER.warning(msg)
             return -1
         
-        LOGGER.debug(f'Playing file: {self._VLC} --intf dummy --rate {speed} --play-and-exit {sound_file}')
+        LOGGER.debug(f'Playing file: {cls._VLC} --intf dummy --rate {speed} --play-and-exit {sound_file}')
         if helper.is_windows():
-            ret = os.system(f'"{self._VLC}" --intf dummy --rate {speed} --play-and-exit {sound_file}')
+            ret = os.system(f'"{cls._VLC}" --intf dummy --rate {speed} --play-and-exit {sound_file}')
         else:
-            ret = os.system(f'{self._VLC} --rate {speed} --play-and-exit {sound_file}')
+            ret = os.system(f'{cls._VLC} --rate {speed} --play-and-exit {sound_file}')
 
         return  ret
-    
-    def _file_location(self, search_path: str, target: str) -> str:
-        vlc_loc: str = None
-        for filepath in search_path.rglob(target):
-            vlc_loc = filepath
-            break
 
-        return vlc_loc
+    @classmethod
+    def _is_VLC_installed(cls) -> bool:
+        if helper.is_windows():
+            start_path = pathlib.Path(os.environ['ProgramFiles'])
+            exe = "vlc.exe"
+        else:
+            start_path = pathlib.Path('/usr/bin')
+            exe = 'cvlc'
+        LOGGER.debug(f'- Searching for {exe} starting at {start_path}')
+
+        cls._VLC = helper.find_file(filenm=exe, search_path=start_path)
+        return cls._VLC is not None
+    
+    @classmethod
+    def _is_file(cls, token: str) -> bool:
+        check_file = pathlib.Path(token)
+        try:
+            is_file = check_file.is_file()
+        except OSError:
+            is_file = False
+        return is_file
     
 if __name__ == "__main__":
     import dt_tools.logger.logging_helper as lh
+
     from dt_tools.cli.demos.dt_misc_sound_demo import demo
 
     lh.configure_logger(log_level="INFO")

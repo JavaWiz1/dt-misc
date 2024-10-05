@@ -1,7 +1,13 @@
 """
-weather_forecast.py
+weather_forecast_alert.py
 
-Module which leverages api.weather.gov to retrieve weather alerts based on GeoLocation (latitude, longitude)
+Module which leverages The National Weather Service (NWS) API (api.weather.gov) to retrieve weather forecasts and alerts based on GeoLocation (latitude, longitude).
+
+This is a free API provided by the US government
+
+NOTE:
+
+    - Endpoint only support US locations (including )
 
 """
 import json
@@ -15,37 +21,10 @@ from typing import Tuple, Union
 
 import requests
 from loguru import logger as LOGGER
-from dt_tools.misc.weather.common import WeatherLocation
+from dt_tools.misc.weather.common import States, WeatherLocation
 
-# import utils.cfg as cfg
-# from utils.misc.sound import Sound, ACCENT
-
-# SPEAK_SPEED = 1.25
 URL_BASE_TEMPLATE="https://api.weather.gov/points/{latitude},{longitude}"
 URL_ALERT_TEMPLATE="https://api.weather.gov/alerts/active?point={latitude},{longitude}"
-
-STATES ={
-    "AL": "Alabama",        "KY": "Kentuky",        "OH": "Ohio",
-    "AK": "Alaska",         "LA": "Louisiana",      "OK": "Oklahoma",
-    "AZ": "Arizonz",        "ME": "Maine",          "OR": "Oregon",
-    "AR": "Arkansas",       "MD": "Maryland",       "PA": "Pennsylvania",
-    "AS": "American Somoa", "MA": "Massachusetts",  "PR": "Puerto Rico",
-    "CA": "California",     "MI": "Michigam",       "RI": "Rhode Island",
-    "CO": "Colorado",       "MN": "Minnesota",      "SC": "South Carolina",
-    "CT": "Connecticut",    "MS": "Mississippi",    "SD": "South Dakota",
-    "DE": "Delaware",       "MO": "Missouri",       "TN": "Tenessee",
-    "DC": "District of Columbia", "MT": "Montana",  "TX": "Texas",
-    "FL": "Florida",        "NE": "Nebraska",       "TT": "Trust Territories",
-    "GA": "Georgia",        "NV": "Nevada",         "UT": "Utah",
-    "GU": "Guam",           "NH": "New Hampshire",  "VT": "Vermont",
-    "HI": "Hawaii",         "NJ": "New Jersey",     "VA": "Virginia",
-    "ID": "Idaho",          "NM": "New Mexico",     "VI": "Virgin Islands",
-    "IL": "Illinois",       "NY": "New York",       "WA": "Washington",
-    "IN": "Indiana",        "NC": "North Carolina", "WV": "West Virgina",
-    "IA": "Idaho",          "ND": "North Dakota",   "WI": "Wisconson",
-    "KS": "Kansas",         "MP": "Northern Marina Islands", "WY": "Wyoming",
-}
-
 
 
 # =========================================================================================================    
@@ -61,14 +40,6 @@ class ForecastType(Enum):
 # =========================================================================================================    
 @dataclass
 class ForecastDay():
-    # location: WeatherLocation 
-    # lat: float 
-    # lon: float
-    # city: str
-    # state: str
-    # payload: dict = field(default_factory=dict)
-    # _speak_thread_id: int = -1
-    # _speak_accent: ACCENT = ACCENT.UnitedStates
 
     def __init__(self, lat:float, lon:float, city:str, state: str, payload: dict):
         self.location = WeatherLocation(latitude=lat, longitude=lon)
@@ -96,25 +67,9 @@ class ForecastDay():
         # text += f'  Detailed Desc  : {self.detailed_forecast}\n'
         return text
     
-    # @property
-    # def accent(self) -> ACCENT:
-    #     return self._speak_accent
-    
-    # @accent.setter
-    # def accent(self, id: str):
-    #     try:
-    #         speak_accent = ACCENT[id]
-    #     except Exception:
-    #         LOGGER.warning(f'ForecastDay() invalid accent id [{id}], defaulting to US.')
-    #         speak_accent = ACCENT.UnitedStates
-
-    #     LOGGER.warning(f'ForecastDay() setting accent to: {speak_accent}')
-    #     self._speak_accent = speak_accent
-
-
     @property
     def state_full(self) -> str:
-        return STATES.get(self.state,'')
+        return States.translate_state_code(self.state)
     
     @property
     def _valid_forecast_day(self) -> bool:
@@ -168,54 +123,12 @@ class ForecastDay():
     def detailed_forecast(self) -> str:
         return self.payload.get('detailedForecast', Unknown.STR)
     
-    # def speak_short_forecast(self, include_timeframe: bool = True, include_location: bool = False, speed: float = SPEAK_SPEED):
-    #     if self.is_speaking():
-    #         LOGGER.warning('Speak thread in process... Ignoring request.')
-    #         return False
-        
-    #     kwargs={"text": self.short_forecast, "include_timeframe": include_timeframe, "include_location": include_location, "speak_speed": speed}
-    #     t = threading.Thread(target=self._speak, kwargs=kwargs)
-    #     t.start()
-    #     self._speak_thread_id = t.native_id
-
-
-    # def speak_detailed_forecast(self, include_timeframe: bool = True, include_location: bool = False, speed: float = SPEAK_SPEED):
-    #     if self.is_speaking():
-    #         LOGGER.warning('Speak thread in process... Ignoring request.')
-    #         return False
-        
-    #     kwargs={"text": self.detailed_forecast, "include_timeframe": include_timeframe, "include_location": include_location, "speak_speed": speed}
-    #     t = threading.Thread(target=self._speak, kwargs=kwargs)
-    #     t.start()
-    #     self._speak_thread_id = t.native_id
-
-    # def is_speaking(self) -> bool:
-    #     if self._speak_thread_id is None or self._speak_thread_id < 0:
-    #         return False
-    #     return True
-    
-    # def _speak(self, text: str, include_timeframe: bool, include_location: bool, speak_speed: float):
-    #     content = 'Forecast for ' if include_timeframe or include_location else ''            
-    #     if include_location:
-    #         content += f'{self.city} {self.state_full} '
-    #     if include_timeframe:
-    #         content += f'{self.timeframe}. '
-            
-    #     # content += self.detailed_forecast
-    #     content += text
-    #     Sound().speak(content, accent=self.accent, speed=speak_speed)
-    #     self._speak_thread_id = -1
-    #     LOGGER.success('Speak weather forecast complete.')
-
-
 
 
 # =========================================================================================================    
 class AbstractEndpoint(ABC):
     def __init__(self, lat: float, lon: float, friendly_name: str = ''):
         self.location = WeatherLocation(latitude=lat, longitude=lon)
-        # self._lat: float = lat
-        # self._lon: float = lon
         self._friendly_name: str = friendly_name
         self._city: str = None
         self._state: str = None
@@ -226,11 +139,11 @@ class AbstractEndpoint(ABC):
         
     @property
     def latitude(self) -> float:
-        return self.location.latitude
+        return float(self.location.latitude)
     
     @property
     def longitude(self) -> float:
-        return self.location.longitude
+        return float(self.location.longitude)
     
     @property
     def name(self):
@@ -259,7 +172,7 @@ class AbstractEndpoint(ABC):
         return f'{self._city},{self._state}'
     
     def _translate_state(self, state: str) -> str:
-        return STATES.get(state, state)
+        return States.translate_state_code(state)
     
     def refresh_if_needed(self, force: bool = False) -> bool:
         '''Return true if refresh needed and successful else false'''
@@ -347,6 +260,8 @@ class Forecast(AbstractEndpoint):
         Returns:
             Union[ForecastDay, None]: Forecast for target day if found, else None
         """
+        # NOTE: May be bug here if current time of day has passed day/night boundary
+        #       Possible that entry 0 is night (not day)
         if self._valid_payload:
             idx = (days_in_future * 2) + time_of_day.value
             payload = self._json_daily_forecast['properties']['periods'][idx]
@@ -402,29 +317,12 @@ class LocationAlerts(AbstractEndpoint):
     
         return (rc == 200)
     
-    # @property
-    # def accent(self) -> ACCENT:
-    #     return self._speak_accent
-    
-    # @accent.setter
-    # def accent(self, id: str):
-    #     try:
-    #         speak_accent = ACCENT[id]
-    #     except Exception:
-    #         speak_accent = ACCENT.UnitedStates
-
-    #     LOGGER.warning(f'LocationAlerts() setting accent to: {speak_accent}')
-    #     self._speak_accent = speak_accent
-
     @property
     def alert_count(self) -> int:
-        return len(self._json_alert['features'])
+        return len(self._json_alert.get('features',''))
     
-
     def alert_id(self, alert_num: int) -> str:
         return self._get_property(alert_num, 'id')
-
-
     def effective(self, alert_num: int) -> datetime:
         return self._get_property(alert_num, 'effective')
     def expires(self, alert_num: int) -> str:
@@ -443,7 +341,6 @@ class LocationAlerts(AbstractEndpoint):
         return self._get_property(alert_num, 'event')
     def headline(self, alert_num: int) -> str:
         token = self._get_property(alert_num, 'headline').split(' by ') 
-        # return self._get_property(alert_num, 'headline')    
         return token[0]
     def description(self, alert_num: int) -> str:
         return self._get_property(alert_num, 'description')
@@ -494,34 +391,7 @@ class LocationAlerts(AbstractEndpoint):
 
             output += '\n'
         return output
-    
-    # def speak_alert(self, alert_id: Union[int, str], include_location: bool = True, speak_speed: float = SPEAK_SPEED) -> bool:
-    #     if isinstance(alert_id, int):
-    #         alert_num = alert_id if alert_id < self.alert_count else -1
-    #     else:
-    #         alert_num = self.get_alert_idx(alert_id)
-
-    #     if alert_num < 0:
-    #         LOGGER.warning(f'Invalid alert id [{alert_id}]')
-    #         return False
         
-    #     LOGGER.debug(f'Alert identified as: {alert_num} | id: {self.alert_id(alert_num)} | {self.message_type(alert_num)}') 
-
-    #     text = ''
-    #     if include_location:
-    #         text += f"{self.city} {self.state_full}.  "
-        
-    #     text += f"Alert {alert_num+1}.  {self.event(alert_num)}.  "
-    #     text += f"Issued {self._convert_date(self.effective(alert_num), True)}"
-    #     if self.message_type != 'Alert':
-    #         text += f' until {self._convert_date(self.expires(alert_num), True)}'
-    #         if self.event == 'Special Weather Statement':
-    #             text += f'  {self.description(alert_num)}'
-    #             text += f'  {self.instruction(alert_num)}'
-
-    #     Sound().speak(text, accent=self.accent, speed=speak_speed)
-    #     return True
-    
     def _convert_date(self, str_iso_date: str, inc_month: bool = False) -> str:
         token = str_iso_date
         if token is not None and token != Unknown.STR:
@@ -556,7 +426,6 @@ def main():
         LOGGER.success('today long forecast:')
         LOGGER.info(f'  {today.detailed_forecast}')
         LOGGER.info('')
-        # today.speak_short_forecast(include_timeframe=True, include_location=True, speed=cfg.audio_speed)
     tonight: ForecastDay = weather_forecast.forecast_for_today(ForecastType.NIGHT)
     if tonight is not None:
         LOGGER.debug(f'\n{json.dumps(weather_forecast._json_base)}')
@@ -565,16 +434,13 @@ def main():
         LOGGER.success('tonight long forecast:')
         LOGGER.info(f'  {tonight.detailed_forecast}')
         LOGGER.info('')
-        # tonight.speak_short_forecast(include_timeframe=True, include_location=True, speed=cfg.audio_speed)
 
     alert = LocationAlerts(lat, lon)
     LOGGER.info(f'\n{alert.to_string()}')
-    # Sound().speak(f'{alert.alert_count} weather alerts for {alert.city} {alert.state_full}',)
     for i in range(0, alert.alert_count):
         LOGGER.info(alert.headline(i))
         LOGGER.info(f'  {alert.description(i)}')
         LOGGER.info(f'  {alert.instruction(i)}')
-    #     alert.speak_alert(i, False)
 
 if __name__ == "__main__":
     import dt_tools.logger.logging_helper as lh

@@ -29,9 +29,9 @@ class LocationCache:
 
         self.load()
         if self.valid_cache:
-            LOGGER.success(f'Location cache loaded with {len(self.cache)} entries.')
+            LOGGER.trace(f'Location cache loaded with {len(self.cache)} entries.')
         else:
-            LOGGER.warning('Cache does not exist and could not be created.')
+            LOGGER.debug('Cache does not exist and could not be created.')
 
     def __del__(self):
         if self.valid_cache:
@@ -50,7 +50,8 @@ class LocationCache:
         elif cache_file.parent.exists():
             self.cache = {}
         else:
-            self.valid_cache = False
+            # self.valid_cache = False
+            cache_file.parent.mkdir(parents=True)
 
     def exists(self, key) -> bool:
         return key in self.cache.keys()

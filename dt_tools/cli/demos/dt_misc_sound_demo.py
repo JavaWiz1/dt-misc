@@ -43,7 +43,7 @@ def _accent_demo():
     LOGGER.info('  ----------------------------------------------------------------------------------------------------')
     for accent in Accent:
         LOGGER.success(f'  Sound().speak(f"This is a test, with a {accent.name} accent.", accent={accent}, speed={DEMO_SPEED})')
-        Sound().speak(f'This is a test, with a {accent.name} accent.', accent=accent, speed=DEMO_SPEED)
+        Sound().speak(f'This is a test, with a {accent.name} accent.', accent=accent, speed=DEMO_SPEED, wait=True)
     
     input('\nPress Enter to continue... ')
 
@@ -56,7 +56,7 @@ def _speed_demo():
     LOGGER.info('  ----------------------------------------------------------------------------------------------------')
     for speed in [0.75, 1.0, 1.25, 1.5, 2.0]:
         LOGGER.success(f'  Sound().speak("This is a test with the speed set to {speed}.", speed={speed})')
-        Sound().speak(f'This is a test, with the speed set to {speed}.', speed=speed)
+        Sound().speak(f'This is a test, with the speed set to {speed}.', speed=speed, wait=True)
     
     input('\nPress Enter to continue... ')
 
@@ -64,8 +64,8 @@ def _file_demo():
     LOGGER.info('')
     LOGGER.info('Text file sound demo')
     LOGGER.info('--------------------')
-    Sound().speak('This demo will create a text file and translate it into speech.', speed=DEMO_SPEED)
-    # test_file = pathlib.Path("./dt-sound-test.txt")
+    snd = Sound()
+    snd.speak('This demo will create a text file and translate it into speech.', speed=DEMO_SPEED, wait=True)
     test_file = pathlib.Path(OSHelper().get_temp_filename(prefix='dt-', dotted_suffix='.txt', target_dir='.'))
     LOGGER.info(f'- Generate text file [{test_file}].')
     date = dt.strftime(dt.now(), "%A %B %d")
@@ -91,8 +91,8 @@ def _file_demo():
         print(f'    {line}')
     LOGGER.info('')
     LOGGER.info('- Reading and speaking the text in the file.')
-    LOGGER.success(f'Sound().speak("{test_file}", speed{DEMO_SPEED})')
-    Sound().speak(test_file, speed=DEMO_SPEED)
+    LOGGER.success(f'  Sound().speak("{test_file}", speed{DEMO_SPEED})')
+    snd.speak(test_file, speed=DEMO_SPEED, wait=True)
     
     test_file.unlink()
 
@@ -102,14 +102,14 @@ def demo():
     LOGGER.info('dt_misc_sound_helper_demo')
     LOGGER.info('-'*80)
 
-    # _accent_demo()
-    # _speed_demo()
+    _accent_demo()
+    _speed_demo()
     _file_demo()
 
     LOGGER.info('')
     salutation = 'This concludes the sound demo...  Thanks for listening.'
+    Sound().speak(salutation, speed=DEMO_SPEED, wait=False)
     LOGGER.info(salutation)
-    Sound().speak(salutation, speed=DEMO_SPEED)
 
 if __name__ == "__main__":
     lh.configure_logger(log_format=lh.DEFAULT_CONSOLE_LOGFMT, brightness=False)

@@ -234,11 +234,11 @@ class CurrentConditions():
         text: str = f'Current weather conditions for {self.loc_name} {self.loc_region}. [{self.lat_long}]\n\n'
         text += f'{self.condition}\n'    
         text += f'  Temperature {self.temp}{degree} feels like {self.feels_like}{degree}\n'    
-        text += f'  Wind {self.wind_speed_mph} mph - {self.wind_direction}\n'    
+        text += f'  Wind {self.wind_speed_mph} mph - {self.wind_direction} with gusts up to {self.wind_gust_mph} mph\n'
         text += f'  Humidity {self.humidity_pct}%\n'    
         text += f'  Cloud Cover {self.cloud_cover_pct}%, visibility {self.visibility_mi} miles\n'    
         text += f'  Precipitation {self.precipitation} in.\n'    
-        text += f'  Air Quality {self.aqi_text} [{self.aqi}]\n'    
+        text += f'  Air Quality {self.aqi_text}\n'    
         return text
     
     def refresh(self, ignore_cache: bool = False) -> bool:
