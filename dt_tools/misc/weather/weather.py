@@ -12,7 +12,6 @@ Location information can be retrieved based on:
 """
 import json
 import pathlib
-# import threading
 from dataclasses import dataclass
 from datetime import datetime as dt
 
@@ -22,8 +21,7 @@ from loguru import logger as LOGGER
 
 from dt_tools.misc.census_geoloc import GeoLocation
 from dt_tools.misc.helpers import ApiTokenHelper
-# from dt_tools.misc.sound import Accent, Sound
-from dt_tools.misc.weather.common import WeatherLocation
+from dt_tools.misc.weather.common import WeatherLocation, WeatherSymbols
 
 """
 Air Quality Index
@@ -230,15 +228,14 @@ class CurrentConditions():
         Returns:
             str: _description_
         """
-        degree = chr(176)
-        text: str = f'Current weather conditions for {self.loc_name} {self.loc_region}. [{self.lat_long}]\n\n'
-        text += f'{self.condition}\n'    
+        degree = WeatherSymbols.degree.value
+        text =  f'{self.condition}\n'    
         text += f'  Temperature {self.temp}{degree} feels like {self.feels_like}{degree}\n'    
-        text += f'  Wind {self.wind_speed_mph} mph - {self.wind_direction} with gusts up to {self.wind_gust_mph} mph\n'
         text += f'  Humidity {self.humidity_pct}%\n'    
-        text += f'  Cloud Cover {self.cloud_cover_pct}%, visibility {self.visibility_mi} miles\n'    
-        text += f'  Precipitation {self.precipitation} in.\n'    
         text += f'  Air Quality {self.aqi_text}\n'    
+        text += f'  Precipitation {self.precipitation} in.\n'    
+        text += f'  Cloud Cover {self.cloud_cover_pct}%, visibility {self.visibility_mi} miles\n'    
+        text += f'  Wind {self.wind_speed_mph} mph - {self.wind_direction} with gusts up to {self.wind_gust_mph} mph\n'
         return text
     
     def refresh(self, ignore_cache: bool = False) -> bool:

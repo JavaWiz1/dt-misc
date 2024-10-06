@@ -25,18 +25,18 @@ class LocationCache:
     def __post_init__(self):
         # if not cfg.geoloc_enabled:
         if not _GeoLoc_Control.API_ENABLED:
-            LOGGER.warning('GeoLoc API key not defined, cache lookup only.')
+            LOGGER.trace('GeoLoc API key not defined, cache lookup only.')
 
         self.load()
         if self.valid_cache:
             LOGGER.trace(f'Location cache loaded with {len(self.cache)} entries.')
         else:
-            LOGGER.debug('Cache does not exist and could not be created.')
+            LOGGER.trace('Cache does not exist and could not be created.')
 
     def __del__(self):
         if self.valid_cache:
             self.save()
-            LOGGER.success(f'Location cache saved with {len(self.cache)} entries to {_GeoLoc_Control.CACHE_FILENM}')
+            LOGGER.debug(f'Location cache saved with {len(self.cache)} entries to {_GeoLoc_Control.CACHE_FILENM}')
 
     def save(self):
         if self.valid_cache:
@@ -121,7 +121,7 @@ class GeoLocation:
         self.country = None
         self.ip = None
         self._json_payload = None
-        LOGGER.debug('Location data cleared.')
+        LOGGER.trace('Location data cleared.')
 
     def get_location_via_lat_lon(self, lat: float, lon: float) -> bool:
         """Retrieve address location based on lat/lon coordinates"""
@@ -131,19 +131,19 @@ class GeoLocation:
         loc_dict = None
         if LOCATION_CACHE.exists(self.lat_lon):
             loc_dict = LOCATION_CACHE.get(self.lat_lon)
-            LOGGER.info(f'({self.lat_lon}) retrieved from cache')
+            LOGGER.debug(f'({self.lat_lon}) retrieved from cache')
         elif not _GeoLoc_Control.API_ENABLED:
             return False
         else:
             url = f"{_GeoLoc_Control.BASE_URL}/{_GeoLoc_Control.LAT_LON_URI}?api_key={_GeoLoc_Control.API_KEY}&lat={self.lat}&lon={self.lon}"
-            LOGGER.debug(f'GEOLOC url: {url}')
+            LOGGER.trace(f'GEOLOC url: {url}')
             try:
                 resp = requests.get(url)
                 if resp.status_code == 200:
                     LOGGER.trace(resp.json())
                     loc_dict = resp.json()
                     LOCATION_CACHE.add(self.lat_lon, loc_dict)
-                    LOGGER.success(f'({self.lat_lon}) added to cache, {len(LOCATION_CACHE.cache)} total entries.')
+                    LOGGER.debug(f'({self.lat_lon}) added to cache, {len(LOCATION_CACHE.cache)} total entries.')
             except Exception as ex:
                 LOGGER.exception(f'Unable to get geoloc: {repr(ex)}')
                 return False
@@ -185,7 +185,7 @@ class GeoLocation:
 
         self._clear_location_data()
         url = f"{_GeoLoc_Control.BASE_URL}/{_GeoLoc_Control.ADDRESS_URI}?api_key={_GeoLoc_Control.API_KEY}&q={address}"
-        LOGGER.debug(f'GEOLOC url: {url}')
+        LOGGER.trace(f'GEOLOC url: {url}')
         found = False
         resp = requests.get(url)
         if resp.status_code == 200:
@@ -243,7 +243,7 @@ class GeoLocation:
             return False
 
         url = f"{_GeoLoc_Control.BASE_URL}/{_GeoLoc_Control.ADDRESS_URI}?api_key={_GeoLoc_Control.API_KEY}&postalcode={self.zip}"
-        LOGGER.debug(f'GEOLOC url: {url}')
+        LOGGER.trace(f'GEOLOC url: {url}')
         resp = requests.get(url)
         if resp.status_code == 200:
             LOGGER.trace(pformat(resp.json()))            
