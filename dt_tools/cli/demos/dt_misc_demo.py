@@ -17,8 +17,7 @@ import dt_tools.logger.logging_helper as lh
 from dt_tools.os.os_helper import OSHelper
 from dt_tools.os.project_helper import ProjectHelper
 
-if __name__ == '__main__':
-    OSHelper.enable_ctrl_c_handler()
+def demo():
     DEMOS = {
         "GeoLocation Demo": geoloc_demo,
         "Weather demo": weather_demo,
@@ -34,5 +33,9 @@ if __name__ == '__main__':
         if input(f'Run {name} (y/n)? ').lower() == 'y':
             demo_module.demo()  
             LOGGER.info('') 
+
+if __name__ == '__main__':
+    OSHelper.enable_ctrl_c_handler()
+    demo()
                                                       
     LOGGER.success("That's all folks!!")

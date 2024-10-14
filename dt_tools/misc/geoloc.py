@@ -268,6 +268,7 @@ class GeoLocation:
     def get_location_via_address(self, city: str, state: str, house: int=None, street: str=None, zip: int=None) -> bool:
         """
         Retrieve location based on street address
+        
         Required:
             city, state
 
@@ -408,12 +409,14 @@ class GeoLocation:
 
     def GPS_dms_to_dd(lat_dms:Tuple[float, float, float], lat_ref: str, lon_dms: Tuple[float, float, float], lon_ref: str) -> Tuple[float, float]:
         """
-        Return Lat/Lon decimal degrees (dd) from Lat/Long Degree, Minute Seconds (dms) coordinates
-        Input:
+        Return Lat/Lon decimal degrees (dd) from Lat/Long Degree, Minute Seconds (dms) coordinates.
+
+        Args:
             lat_dms: (degree, minute, sec)
             lat_ref: N or S
             lon_dmsL (degree, minute, sec)
             lon_ref: E or W
+
         Returns:
             lat_dd: decimal degree - latitude 
             lon_dd: decimal degree - longitude

@@ -13,7 +13,7 @@ from dt_tools.misc.census_geoloc import GeoLocationAddress
 from dt_tools.misc.geoloc import GeoLocation
 
 
-def print_object(obj):
+def _print_object(obj):
     for line in obj.to_string().splitlines():
         LOGGER.info(f'  {line}')
     payload = getattr(obj,'_json_payload')
@@ -22,7 +22,7 @@ def print_object(obj):
         for k, v in payload.items():
             LOGGER.info(f'    {k:15} {v}')
 
-def demo_census_geoloc():
+def _demo_census_geoloc():
     LOGGER.info('')
     LOGGER.info('Census Geolocation.')
     LOGGER.info('  Must supply street, city, state OR street, zip code')
@@ -38,10 +38,10 @@ def demo_census_geoloc():
     LOGGER.info(f'Lookup  - street: {street}  city: {city}  state: {state}  zip: {zip}')
     for loc in locations:
         # LOGGER.success(f'Returns - lat: {loc.latitude:.4f}  lon: {loc.longitude:.4f}  address: {loc.address}')
-        print_object(loc)
+        _print_object(loc)
     LOGGER.info('')
 
-def demo_geoloc():
+def _demo_geoloc():
     LOGGER.info('')
     LOGGER.warning('Geolocation (geocode.maps.co)')
     LOGGER.info('')
@@ -52,7 +52,7 @@ def demo_geoloc():
     geo.get_location_via_address_string(address)
     LOGGER.info(f'  {address}')
     LOGGER.info('Returns -')
-    print_object(geo)
+    _print_object(geo)
     LOGGER.info('')
 
     LOGGER.warning('Retrieve via address')
@@ -60,7 +60,7 @@ def demo_geoloc():
     geo.get_location_via_address(city='Bellingham', state='WA', house='511', street='East Magnolia', zip=98225)
     LOGGER.info("  city='Bellingham', state='WA', house='511', street='East Magnolia', zip=98225")
     LOGGER.info('Returns -')
-    print_object(geo)
+    _print_object(geo)
     LOGGER.info('')
 
     LOGGER.warning('Retrieve via latitude/longitude')
@@ -69,7 +69,7 @@ def demo_geoloc():
     geo.get_location_via_lat_lon(lat, lon)
     LOGGER.info(f'  lat: {lat}  lon: {lon}')
     LOGGER.info('Returns -')
-    print_object(geo)
+    _print_object(geo)
     LOGGER.info('')
 
     LOGGER.warning('Retrieve via IP')
@@ -78,7 +78,7 @@ def demo_geoloc():
     LOGGER.info('Returns -')
     # for line in geo.to_string().splitlines():
     #     LOGGER.info(f'  {line}')
-    print_object(geo)
+    _print_object(geo)
     LOGGER.info('')
 
 def demo():
@@ -87,8 +87,8 @@ def demo():
     LOGGER.info('dt_misc_geoloc demo')
     LOGGER.info('-'*80)
 
-    demo_census_geoloc()
-    demo_geoloc()
+    _demo_census_geoloc()
+    _demo_geoloc()
 
     LOGGER.info('')
     LOGGER.info('Demo complete.')

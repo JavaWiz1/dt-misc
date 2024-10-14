@@ -29,7 +29,8 @@ Includes:
 
 
 .. toctree::
-   :maxdepth: 4
+   :maxdepth: 5
    :caption: Contents:
 
    dt_tools
+   dt_tools.cli.demos
