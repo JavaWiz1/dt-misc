@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>dt_tools.misc.geoloc module &mdash; dt-misc  documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=19f00094" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="_static/jquery.js?v=5d32c60e"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="_static/documentation_options.js?v=5929fcd5"></script>
+        <script src="_static/doctools.js?v=9a2dae69"></script>
+        <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="dt_tools.misc.sound module" href="dt_tools.misc.sound.html" />
+    <link rel="prev" title="dt_tools.misc.census_geoloc module" href="dt_tools.misc.census_geoloc.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            dt-misc
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="dt_tools.html">dt_tools namespace</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="dt_tools.html#subpackages">Subpackages</a><ul class="current">
+<li class="toctree-l3 current"><a class="reference internal" href="dt_tools.misc.html">dt_tools.misc namespace</a><ul class="current">
+<li class="toctree-l4 current"><a class="reference internal" href="dt_tools.misc.html#submodules">Submodules</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="dt_tools.cli.demos.html">dt_tools.cli.demos namespace</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">dt-misc</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="dt_tools.html">dt_tools namespace</a></li>
+          <li class="breadcrumb-item"><a href="dt_tools.misc.html">dt_tools.misc namespace</a></li>
+      <li class="breadcrumb-item active">dt_tools.misc.geoloc module</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/dt_tools.misc.geoloc.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="module-dt_tools.misc.geoloc">
+<span id="dt-tools-misc-geoloc-module"></span><h1>dt_tools.misc.geoloc module<a class="headerlink" href="#module-dt_tools.misc.geoloc" title="Link to this heading"></a></h1>
+<p>Module to retrieve location data based on
+- GPS Coordinates
+- Address
+- Landmark name
+- Zip code</p>
+<p>NOTE:</p>
+<p>Requires a FREE API Key from <a class="reference external" href="https://geocode.maps.co">https://geocode.maps.co</a></p>
+<p>See set_api_tokens.exe (dt-cli-tools) for caching the token.</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="dt_tools.misc.geoloc.GeoLocation">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">dt_tools.misc.geoloc.</span></span><span class="sig-name descname"><span class="pre">GeoLocation</span></span><a class="reference internal" href="_modules/dt_tools/misc/geoloc.html#GeoLocation"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#dt_tools.misc.geoloc.GeoLocation" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Class to represent GPS Location, with interfaces to populate via
+- GPS Location (latitude, longitude)
+- Address (House, Street, City, State, Zip)
+- Address (formattet string)
+- Landmark (For example- Statue of Liberty or Mount Rushmore)
+- Zip</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="dt_tools.misc.geoloc.GeoLocation.GPS_dms_to_dd">
+<span class="sig-name descname"><span class="pre">GPS_dms_to_dd</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">lat_ref</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lon_dms</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lon_ref</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/dt_tools/misc/geoloc.html#GeoLocation.GPS_dms_to_dd"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#dt_tools.misc.geoloc.GeoLocation.GPS_dms_to_dd" title="Link to this definition"></a></dt>
+<dd><p>Return Lat/Lon decimal degrees (dd) from Lat/Long Degree, Minute Seconds (dms) coordinates.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>lat_dms</strong> – (degree, minute, sec)</p></li>
+<li><p><strong>lat_ref</strong> – N or S</p></li>
+<li><p><strong>lon_dmsL</strong> (<em>degree</em><em>, </em><em>minute</em><em>, </em><em>sec</em>)</p></li>
+<li><p><strong>lon_ref</strong> – E or W</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>decimal degree - latitude
+lon_dd: decimal degree - longitude
+(0.0, 0.0) on ERROR</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>lat_dd</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="dt_tools.misc.geoloc.GeoLocation.address">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">address</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#dt_tools.misc.geoloc.GeoLocation.address" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="dt_tools.misc.geoloc.GeoLocation.city">
+<span class="sig-name descname"><span class="pre">city</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#dt_tools.misc.geoloc.GeoLocation.city" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="dt_tools.misc.geoloc.GeoLocation.county">
+<span class="sig-name descname"><span class="pre">county</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#dt_tools.misc.geoloc.GeoLocation.county" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="dt_tools.misc.geoloc.GeoLocation.display_name">
+<span class="sig-name descname"><span class="pre">display_name</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#dt_tools.misc.geoloc.GeoLocation.display_name" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="dt_tools.misc.geoloc.GeoLocation.get_location_via_address">
+<span class="sig-name descname"><span class="pre">get_location_via_address</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">city</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">state</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">house</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">street</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">zip</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="reference internal" href="_modules/dt_tools/misc/geoloc.html#GeoLocation.get_location_via_address"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#dt_tools.misc.geoloc.GeoLocation.get_location_via_address" title="Link to this definition"></a></dt>
+<dd><p>Retrieve location based on street address</p>
+<dl class="simple">
+<dt>Required:</dt><dd><p>city, state</p>
+</dd>
+<dt>Optional:</dt><dd><p>house, street, zip</p>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>True if location identified, False if not found.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>bool</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="dt_tools.misc.geoloc.GeoLocation.get_location_via_address_string">
+<span class="sig-name descname"><span class="pre">get_location_via_address_string</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">address</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">clear_existing</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="reference internal" href="_modules/dt_tools/misc/geoloc.html#GeoLocation.get_location_via_address_string"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#dt_tools.misc.geoloc.GeoLocation.get_location_via_address_string" title="Link to this definition"></a></dt>
+<dd><p>Retrieve location based on street address</p>
+<dl class="simple">
+<dt>Required:</dt><dd><p>address : typically house street, city, state, zip</p>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>True if location identified, False if not found.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>bool</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="dt_tools.misc.geoloc.GeoLocation.get_location_via_ip">
+<span class="sig-name descname"><span class="pre">get_location_via_ip</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="reference internal" href="_modules/dt_tools/misc/geoloc.html#GeoLocation.get_location_via_ip"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#dt_tools.misc.geoloc.GeoLocation.get_location_via_ip" title="Link to this definition"></a></dt>
+<dd><p>Retrieve location info based on IP address</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="dt_tools.misc.geoloc.GeoLocation.get_location_via_landmark">
+<span class="sig-name descname"><span class="pre">get_location_via_landmark</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">landmark</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="reference internal" href="_modules/dt_tools/misc/geoloc.html#GeoLocation.get_location_via_landmark"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#dt_tools.misc.geoloc.GeoLocation.get_location_via_landmark" title="Link to this definition"></a></dt>
+<dd><p>Retrieve location based on landmark name.</p>
+<dl class="simple">
+<dt>Required:</dt><dd><p>landmark (str): Landmark name (ie. Statue of Liberty)</p>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>True if location identified, False if not found.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>bool</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="dt_tools.misc.geoloc.GeoLocation.get_location_via_lat_lon">
+<span class="sig-name descname"><span class="pre">get_location_via_lat_lon</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">lat</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lon</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="reference internal" href="_modules/dt_tools/misc/geoloc.html#GeoLocation.get_location_via_lat_lon"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#dt_tools.misc.geoloc.GeoLocation.get_location_via_lat_lon" title="Link to this definition"></a></dt>
+<dd><p>Retrieve address location based on lat/lon coordinates</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="dt_tools.misc.geoloc.GeoLocation.get_location_via_zip">
+<span class="sig-name descname"><span class="pre">get_location_via_zip</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">zip</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">country_cd</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="reference internal" href="_modules/dt_tools/misc/geoloc.html#GeoLocation.get_location_via_zip"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#dt_tools.misc.geoloc.GeoLocation.get_location_via_zip" title="Link to this definition"></a></dt>
+<dd><p>Retrieve location based on zip code</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="dt_tools.misc.geoloc.GeoLocation.house">
+<span class="sig-name descname"><span class="pre">house</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#dt_tools.misc.geoloc.GeoLocation.house" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="dt_tools.misc.geoloc.GeoLocation.ip">
+<span class="sig-name descname"><span class="pre">ip</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#dt_tools.misc.geoloc.GeoLocation.ip" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="dt_tools.misc.geoloc.GeoLocation.lat">
+<span class="sig-name descname"><span class="pre">lat</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">float</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#dt_tools.misc.geoloc.GeoLocation.lat" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="dt_tools.misc.geoloc.GeoLocation.lat_lon">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">lat_lon</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#dt_tools.misc.geoloc.GeoLocation.lat_lon" title="Link to this definition"></a></dt>
+<dd><p>Return latitude longitude as a comma seperated string</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="dt_tools.misc.geoloc.GeoLocation.lon">
+<span class="sig-name descname"><span class="pre">lon</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">float</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#dt_tools.misc.geoloc.GeoLocation.lon" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="dt_tools.misc.geoloc.GeoLocation.state">
+<span class="sig-name descname"><span class="pre">state</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#dt_tools.misc.geoloc.GeoLocation.state" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="dt_tools.misc.geoloc.GeoLocation.street">
+<span class="sig-name descname"><span class="pre">street</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#dt_tools.misc.geoloc.GeoLocation.street" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="dt_tools.misc.geoloc.GeoLocation.to_string">
+<span class="sig-name descname"><span class="pre">to_string</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">str</span></span></span><a class="reference internal" href="_modules/dt_tools/misc/geoloc.html#GeoLocation.to_string"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#dt_tools.misc.geoloc.GeoLocation.to_string" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="dt_tools.misc.geoloc.GeoLocation.tz_name">
+<span class="sig-name descname"><span class="pre">tz_name</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#dt_tools.misc.geoloc.GeoLocation.tz_name" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="dt_tools.misc.geoloc.GeoLocation.zip">
+<span class="sig-name descname"><span class="pre">zip</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#dt_tools.misc.geoloc.GeoLocation.zip" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="dt_tools.misc.geoloc.LocationCache">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">dt_tools.misc.geoloc.</span></span><span class="sig-name descname"><span class="pre">LocationCache</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cache:</span> <span class="pre">Dict[str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dict]</span> <span class="pre">=</span> <span class="pre">&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">valid_cache:</span> <span class="pre">bool</span> <span class="pre">=</span> <span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/dt_tools/misc/geoloc.html#LocationCache"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#dt_tools.misc.geoloc.LocationCache" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="dt_tools.misc.geoloc.LocationCache.add">
+<span class="sig-name descname"><span class="pre">add</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">key</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/dt_tools/misc/geoloc.html#LocationCache.add"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#dt_tools.misc.geoloc.LocationCache.add" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="dt_tools.misc.geoloc.LocationCache.cache">
+<span class="sig-name descname"><span class="pre">cache</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">dict</span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#dt_tools.misc.geoloc.LocationCache.cache" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="dt_tools.misc.geoloc.LocationCache.clear">
+<span class="sig-name descname"><span class="pre">clear</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/dt_tools/misc/geoloc.html#LocationCache.clear"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#dt_tools.misc.geoloc.LocationCache.clear" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="dt_tools.misc.geoloc.LocationCache.exists">
+<span class="sig-name descname"><span class="pre">exists</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">key</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="reference internal" href="_modules/dt_tools/misc/geoloc.html#LocationCache.exists"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#dt_tools.misc.geoloc.LocationCache.exists" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="dt_tools.misc.geoloc.LocationCache.get">
+<span class="sig-name descname"><span class="pre">get</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">key</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">dict</span></span></span><a class="reference internal" href="_modules/dt_tools/misc/geoloc.html#LocationCache.get"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#dt_tools.misc.geoloc.LocationCache.get" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="dt_tools.misc.geoloc.LocationCache.load">
+<span class="sig-name descname"><span class="pre">load</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/dt_tools/misc/geoloc.html#LocationCache.load"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#dt_tools.misc.geoloc.LocationCache.load" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="dt_tools.misc.geoloc.LocationCache.save">
+<span class="sig-name descname"><span class="pre">save</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/dt_tools/misc/geoloc.html#LocationCache.save"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#dt_tools.misc.geoloc.LocationCache.save" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="dt_tools.misc.geoloc.LocationCache.valid_cache">
+<span class="sig-name descname"><span class="pre">valid_cache</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">True</span></em><a class="headerlink" href="#dt_tools.misc.geoloc.LocationCache.valid_cache" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="dt_tools.misc.census_geoloc.html" class="btn btn-neutral float-left" title="dt_tools.misc.census_geoloc module" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="dt_tools.misc.sound.html" class="btn btn-neutral float-right" title="dt_tools.misc.sound module" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, JavaWiz1@hotmail.com.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

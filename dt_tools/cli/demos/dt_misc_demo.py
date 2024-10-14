@@ -23,7 +23,7 @@ def demo():
         "Weather demo": weather_demo,
         "Sound demo": sound_demo
     }
-    l_handle = lh.configure_logger(log_level="INFO", brightness=False)
+    l_handle = lh.configure_logger(log_level="INFO", brightness=False)  # noqa: F841
     LOGGER.info('='*80)
     version = f'v{ProjectHelper.determine_version("dt-misc")}'
     LOGGER.info(f'dt_misc_demo {version}', 80)
