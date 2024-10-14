@@ -23,7 +23,10 @@ loguru = "^0.7.2"
 gtts = "^2.5.2"
 # dt-foundation = {path = "../dt-foundation", develop = true }
 # dt-net = {path = "../dt-net", develop = true }
+dt-foundation = "*"
 dt-net = "*"
+timezonefinder = "^6.5.3"
+tzdata = { version="*", platform="win32" } 
 
 [[tool.poetry.source]]
 name = "PyPI"

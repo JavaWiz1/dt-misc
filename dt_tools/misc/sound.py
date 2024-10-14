@@ -62,12 +62,6 @@ class Sound(object):
         return cls._instance
 
 
-    # @classmethod
-    # def __init__(cls):       
-    #     if not cls._is_VLC_installed():
-    #         raise FileNotFoundError('VLC is required to use this module.  Unable to locate VLC module')
-    
-
     # -- Public Functions -------------------------------------------------------------------------------------------
     @classmethod
     def speak(cls, in_token: str, speed: float = 1.0, accent: Accent = Accent.UnitedStates, ignore_in_progress: bool = False, wait: bool = True, delete_mp3:bool = True) -> bool:

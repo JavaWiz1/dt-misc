@@ -8,19 +8,62 @@ from enum import Enum
 from loguru import logger as LOGGER
 
 
+# =========================================================================================================    
+"""
+Air Quality Index
+"""
+AQI_DESC = {
+    -1: 'Unknown',
+    1: 'Good',
+    2: 'Moderate',
+    3: 'Degraded',
+    4: 'Unhealthy',
+    5: 'Very Unhealthy',
+    6: 'Hazardous',
+}
+
+
+# =========================================================================================================    
+class Unknown():
+    STR: str = "Unknown"
+    INT: int = -1
+
+# =========================================================================================================    
+class ForecastType(Enum):
+    DAY: int = 0
+    NIGHT: int = 1
+
+# =========================================================================================================    
 class WeatherSymbols(Enum):
     degree = chr(176)
     N = "North"
     S = "South"
     E = "East"
     W = "West"
+
     def translate_compass_point(wind_dir: str) -> str:
+        """
+        Given the abbreviated wind direction, return full text
+
+
+        Args:
+            wind_dir (str): Wind direction (ie. N, S, E, W, NE, NW,...)
+
+        Returns:
+            str: Full text representation of direction (i.e. NW = North West)
+
+        """
         resp = ''
         for char in wind_dir:
             resp += f' {WeatherSymbols[char].value}'
         return resp.lstrip()
 
+# =========================================================================================================    
 class States(Enum):
+    """
+    States enumeration (US and Territories)
+
+    """
     AK = "Alaska"
     AL = "Alabama"
     AR = "Arkansas"
@@ -80,6 +123,15 @@ class States(Enum):
     WY = "Wyoming"
 
     def translate_state_code(code: str) -> str:
+        """
+        Given the state code, return full state name
+
+        Args:
+            code (str): 2 character state code
+
+        Returns:
+            str: Full state name
+        """
         try:
             state_name = States[code].value
         except Exception:
@@ -88,6 +140,7 @@ class States(Enum):
 
         return state_name
 
+# =========================================================================================================    
 @dataclass
 class WeatherLocation():
     """

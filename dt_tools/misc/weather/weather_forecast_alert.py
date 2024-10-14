@@ -12,30 +12,21 @@ NOTE:
 """
 import json
 import textwrap
-# import threading
 from abc import ABC
 from dataclasses import dataclass
 from datetime import datetime
-from enum import Enum
 from typing import Tuple, Union
 
 import requests
 from loguru import logger as LOGGER
-from dt_tools.misc.weather.common import States, WeatherLocation
+
+from dt_tools.misc.weather.common import ForecastType, States, Unknown, WeatherLocation
+from dt_tools.console.console_helper import ConsoleHelper as ch
+from dt_tools.console.console_helper import ColorFG
 
 URL_BASE_TEMPLATE="https://api.weather.gov/points/{latitude},{longitude}"
 URL_ALERT_TEMPLATE="https://api.weather.gov/alerts/active?point={latitude},{longitude}"
 
-
-# =========================================================================================================    
-class Unknown():
-    STR: str = "Unknown"
-    INT: int = -1
-
-# =========================================================================================================    
-class ForecastType(Enum):
-    DAY: int = 0
-    NIGHT: int = 1
 
 # =========================================================================================================    
 @dataclass
@@ -358,8 +349,11 @@ class LocationAlerts(AbstractEndpoint):
     
     def to_string(self) -> str:
         output = 'ALERTS-\n'
+        location = f'{self.city} {self.state} [{self.location.latitude}/{self.location.longitude}]'
+        location = ch.cwrap(location, fg=ColorFG.GREEN2)
         output += f'num_alerts  : {self.alert_count}\n'
-        output += f'location    : {self.city} {self.state} [{self.location.latitude}/{self.location.longitude}]\n'
+        # output += f'location    : {self.city} {self.state} [{self.location.latitude}/{self.location.longitude}]\n'
+        output += f'location    : {location}\n'
         cnt = 0
         for cnt in range(0, self.alert_count):
             output += f'[{cnt+1}] Alert {self.alert_id(cnt)}\n'
@@ -444,5 +438,5 @@ def main():
 
 if __name__ == "__main__":
     import dt_tools.logger.logging_helper as lh
-    lh.configure_logger(log_level="INFO")
+    lh.configure_logger(log_level="INFO", brightness=False)
     main()
