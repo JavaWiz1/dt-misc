@@ -1,11 +1,8 @@
 """
-_summary_
+Retrieve United States GPS Location data based on address.
 
-Raises:
-    GeoLocationException: _description_
+Leverages census data API from https://geocoding.geo.census.gov/geocoder/
 
-Returns:
-    _type_: _description_
 """
 from dataclasses import dataclass
 from typing import List
@@ -69,12 +66,10 @@ class GeoLocation():
     #     },
     #     "addressMatches": [{
     #         "tigerLine": {
-    #             "side": "L",
-    #             "tigerLineId": "76355984"
+    #             "side": "L", "tigerLineId": "76355984"
     #         },
     #         "coordinates": {
-    #             "x": -76.92748724230096,
-    #             "y": 38.84601622386617
+    #             "x": -76.92748724230096, "y": 38.84601622386617
     #         },
     #         "addressComponents": {
     #             "zip": "20233",

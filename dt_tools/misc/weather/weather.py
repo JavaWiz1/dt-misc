@@ -10,37 +10,21 @@ Location information can be retrieved based on:
 - Internet IP address
 
 """
+import datetime
 import json
 import pathlib
 from dataclasses import dataclass
 from datetime import datetime as dt
 
-import dt_tools.net.net_helper as nh
 import requests
 from loguru import logger as LOGGER
 
+import dt_tools.net.net_helper as nh
 from dt_tools.misc.census_geoloc import GeoLocation
 from dt_tools.misc.helpers import ApiTokenHelper
-from dt_tools.misc.weather.common import WeatherLocation, WeatherSymbols
+from dt_tools.misc.sun import Sun
+from dt_tools.misc.weather.common import AQI_DESC, WeatherLocation, WeatherSymbols
 
-"""
-Air Quality Index
-"""
-AQI_DESC = {
-    -1: 'Unknown',
-    1: 'Good',
-    2: 'Moderate',
-    3: 'Degraded',
-    4: 'Unhealthy',
-    5: 'Very Unhealthy',
-    6: 'Hazardous',
-}
-WIND_DIRECTION_DICT = {
-    "N": "North",
-    "S": "South",
-    "E": "East",
-    "W": "West",
-}
 
 class CURRENT_WEATHER_SETTINGS:
     API_KEY = ApiTokenHelper.get_api_token(ApiTokenHelper.API_WEATHER_INFO)
@@ -76,19 +60,12 @@ class CurrentConditions():
     last_update: dt = None
     aqi: int = None
     aqi_text: str = None
+    sunrise: datetime.datetime = None
+    sunset: datetime.datetime = None
     _connect_retries: int = 0
-    # _speak_thread_id: int = None
-    # _speak_accent: Accent = Accent.UnitedStates
     _disabled: bool = True
 
     def __post_init__(self):
-        # if self.lat == 0 or self.lon == 0:
-        #     # Location not set, use (external) ip to set location
-        #     external_ip = self._get_external_ip()
-        #     if external_ip:
-        #         self.lat, self.lon = self._get_lat_lon_from_ip(external_ip)
-        #         LOGGER.warning(f'Location  not set, get via external IP [{external_ip}] - {self.lat_long}')
-        # self.refresh_if_stale()
         pass
 
     def set_location_via_lat_lon(self, lat: float, lon: float) -> bool:
@@ -148,7 +125,7 @@ class CurrentConditions():
         if CURRENT_WEATHER_SETTINGS.API_AVAILABLE:
             geo = GeoLoc()
             if geo.get_location_via_address_string(address):
-                self.location = WeatherLocation(latitude=geo.lat, longitude=geo.lon, location_name=geo.display_name)
+                self.location = WeatherLocation(latitude=geo.lat, longitude=geo.lon, location_name=address)
                 return self.refresh()
     
         return False
@@ -176,21 +153,6 @@ class CurrentConditions():
             return self.refresh()
     
         return False
-
-    # @property
-    # def accent(self) -> Accent:
-    #     return self._speak_accent
-    
-    # @accent.setter
-    # def accent(self, id: str):
-    #     try:
-    #         speak_accent = Accent[id]
-    #     except Exception:
-    #         LOGGER.warning(f'Conditions() invalid accent id [{id}], defaulting to US.')
-    #         speak_accent = Accent.UnitedStates
-
-    #     LOGGER.warning(f'Conditions() setting accent to: {speak_accent}')
-    #     self._speak_accent = speak_accent
 
     @property
     def disabled(self) -> bool:
@@ -236,6 +198,8 @@ class CurrentConditions():
         text += f'  Precipitation {self.precipitation} in.\n'    
         text += f'  Cloud Cover {self.cloud_cover_pct}%, visibility {self.visibility_mi} miles\n'    
         text += f'  Wind {self.wind_speed_mph} mph - {self.wind_direction} with gusts up to {self.wind_gust_mph} mph\n'
+        if self.sunrise:
+            text += f'  Sunrise at {self.sunrise.strftime("%I:%M %p")} / Sunset at {self.sunset.strftime("%I:%M %p %Z")}'
         return text
     
     def refresh(self, ignore_cache: bool = False) -> bool:
@@ -280,6 +244,10 @@ class CurrentConditions():
                 LOGGER.debug(json.dumps(resp.json(), indent=2))
                 self._load_current_conditions(resp.json())
                 self._disabled = False
+                if self.sunrise is None:
+                    sun = Sun(self.location.latitude, self.location.longitude)
+                    self.sunrise = sun.get_gps_sunrise()
+                    self.sunset  = sun.get_gps_sunset()
                 return True
 
         except Exception as ex:
@@ -297,64 +265,15 @@ class CurrentConditions():
         self._disabled = True
         return False
 
-    # def speak_current_conditions(self) -> int:
-    #     if self._speak_thread_id is not None and self._speak_thread_id > 0:
-    #         LOGGER.warning('Speak thread in process... Ignoring request.')
-    #         return False
-        
-    #     t = threading.Thread(target=self._speak_current_conditions_thread)
-    #     t.start()
-    #     self._speak_thread_id = t.native_id
-
-    # def _speak_current_conditions_thread(self):
-    #     # TODO: allow speak template
-
-    #     wind_direction = self._speak_direction(self.wind_direction)
-    #     # cloud_cover_pct = self._speak_normalize_number(weather.cloud_cover_pct)
-    #     temp = self._speak_normalize_number(self.temp)
-    #     feels_like = self._speak_normalize_number(self.feels_like)
-    #     humidity_pct = self._speak_normalize_number(self.humidity_pct)
-    #     # precipitation = self._speak_normalize_number(weather.precipitation)
-    #     visibility_mi = self._speak_normalize_number(self.visibility_mi)
-    #     wind_speed_mph = self._speak_normalize_number(self.wind_speed_mph)
-    #     wind_gust_mph = self._speak_normalize_number(self.wind_gust_mph)        
-    #     time_now = dt.now().strftime("%I:%M%p")
-    #     text = f'Current weather conditions at {time_now}.  '
-    #     text += f'{self.condition}.  Temperature {temp}, feels like {feels_like}.  '
-    #     text += f'{humidity_pct}% humidity, air quality is {self.aqi_text}.  '
-    #     text += f'Visibility {visibility_mi} miles.  '
-    #     text += f'Wind {wind_direction} {wind_speed_mph} mph, gusts up to {wind_gust_mph} mph.'
-    #     ret = Sound().speak(text, speed=1.25, accent=self.accent)
-    #     LOGGER.success('Speak current weather conditions complete.')
-    #     self._speak_thread_id = None
-    #     return ret
-    
-    # @property
-    # def speaking(self) -> bool:
-    #     return False if self._speak_thread_id is None else True
-    
-    # def _speak_normalize_number(self, token) -> str:
-    #     try:
-    #         num = float(token)
-    #         frac = num % 1
-    #         resp = str(token).split('.')[0] if frac == 0 else token
-    #     except Exception as ex:
-    #         print(ex)
-    #         resp = token 
-        
-    #     return resp
-
-    # def _speak_direction(self, token: str) -> str:
-    #     resp = ''
-    #     for char in token:
-    #         resp += f' {WIND_DIRECTION_DICT[char]}'
-    #     return resp.lstrip()
-
     def _load_current_conditions(self, blob: dict):
+        LOGGER.debug('_load_current_conditions()')
         l_block: dict = blob['location']
         w_block: dict = blob['current']
         c_block: dict = w_block.get('condition',{})
-        self.loc_name           = l_block.get('name', '')
+        if self.location.location_name is None:
+            self.loc_name       = l_block.get('name', '')
+        else:
+            self.loc_name       = self.location.location_name
         self.loc_region         = l_block.get('region', '')
         self.condition          = c_block.get('text','')  # w_block["condition"]["text"]
         self.condition_icon     = c_block.get('icon', '') # w_block["condition"]["icon"]
@@ -368,58 +287,46 @@ class CurrentConditions():
         self.visibility_mi      = float(w_block.get("vis_miles", -1))
         self.precipitation      = float(w_block.get("precip_in", -1))
         try:
-            self.aqi                = int(w_block["air_quality"]['us-epa-index'])
+            self.aqi            = int(w_block["air_quality"]['us-epa-index'])
         except Exception as ex:
             LOGGER.error(f'Unable to determine AQI: {repr(ex)}')
             self.aqi = -1
-        self.aqi_text           = AQI_DESC[self.aqi]     
+
+        self.aqi_text    = AQI_DESC[self.aqi]     
         self.last_update = dt.now()
         
-    # def _get_external_ip(self) -> str:
-    #     # resp = requests.get('http://ifcfg.me')
-    #     resp = requests.get('https://api.ipify.org')
-    #     external_ip = resp.text
-    #     LOGGER.debug(f'External IP identified as: {external_ip}')
-    #     return external_ip
     
-    # def _get_lat_lon_from_ip(self, ip: str) -> Tuple[float, float]:
-    #     lat: float = 0.0
-    #     lon: float = 0.0
-    #     url = f'https://ipapi.co/{ip}/latlong/'
-    #     #headers = {'user-agent': 'ipapi.co/#ipapi-python-v1.0.4'} 
-    #     headers = {'user-agent': 'ipapi.co/#custom'}               
-    #     resp = requests.get(url, headers=headers)
-    #     if resp.text.count(',') == 1:
-    #         token = resp.text.split(',')
-    #         lat = token[0]
-    #         lon = token[1]
-    #     LOGGER.warning(f'Lat/Lon identified - ip: {ip}  lat: {lat}  lon: {lon}')
-    #     return lat, lon
-
     
 if __name__ == "__main__":
     import dt_tools.logger.logging_helper as lh
+    import sys
 
-    lh.configure_logger(log_level='INFO', log_format=lh.DEFAULT_CONSOLE_LOGFMT, brightness=False)
-
-    weather = CurrentConditions()
-    weather.set_location_via_address(address='4833 Nahane Way, Saint Johns, FL, 32259')
-    LOGGER.success(f'Weather via address: {weather.loc_name}')
-    LOGGER.info(f'  {weather.to_string()}')
-
-    weather = CurrentConditions()
-    weather.set_location_via_census_address(street='4833 Nahane Way', city='St. Johns', state='FL')
-    LOGGER.success(f'Weather via address: {weather.loc_name}')
-    LOGGER.info(f'  {weather.to_string()}')
+    log_lvl = 'DEBUG' if '-v' in sys.argv else 'INFO'
     
-    weather = CurrentConditions()
-    weather.set_location_via_ip()
-    LOGGER.success('Weather via IP:')
-    LOGGER.info(f'  {weather.to_string()}')
+    lh.configure_logger(log_level=log_lvl, log_format=lh.DEFAULT_CONSOLE_LOGFMT, brightness=False)
 
-    weather = CurrentConditions()
+    weather = CurrentConditions() # Must create new due to throttle timer
     geo = GeoLocation.lookup_address(street='1812 Edgewood', city="Berkley", state='MI')
     weather.set_location_via_lat_lon(geo[0].latitude, geo[0].longitude)
-    LOGGER.success('Weather via lat/lon:')
+    LOGGER.success(f'Weather via lat/lon: {weather.lat_long} - {weather.loc_name}')
     LOGGER.info(f'  {weather.to_string()}')
+    LOGGER.info('')
+
+    addresses = [
+        'Nahane Way, Saint Johns, FL, 32259',
+        'Duluth, MN',
+        'Denver, CO',
+        'Portland, OR',
+        'Matterhorn',
+        'Bora Bora',
+        'Puerto Williams, Chile',
+        'Longyearbyen'
+        ]
+    
+    for address in addresses:
+        weather = CurrentConditions() # Must create new due to throttle timer
+        weather.set_location_via_address(address=address)
+        LOGGER.success(f'Weather via address: {weather.loc_name}')
+        LOGGER.info(f'  {weather.to_string()}')
+        LOGGER.info('')
 
