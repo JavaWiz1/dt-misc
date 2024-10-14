@@ -67,7 +67,7 @@ class CurrentConditions():
 
     def __post_init__(self):
         pass
-
+ 
     def set_location_via_lat_lon(self, lat: float, lon: float) -> bool:
         """
         Set weather location based on Geolocation
@@ -154,6 +154,15 @@ class CurrentConditions():
     
         return False
 
+
+    @property
+    def loc_name(self) -> str:
+        return '' if self.location is None else self.location.location_name
+
+    @property
+    def loc_region(self) -> str:
+        return '' if self.location is None else self.location.location_region
+ 
     @property
     def disabled(self) -> bool:
         """
@@ -181,7 +190,7 @@ class CurrentConditions():
 
     @property
     def lat_long(self) -> str:
-        return f'{self.location.latitude},{self.location.longitude}'
+        return '' if self.location is None else f'{self.location.latitude},{self.location.longitude}'
 
     def to_string(self) -> str:
         """
