@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "dt-misc"
-version = "0.1.9"
+version = "0.1.10"
 description = "Misc. utility packages (geoloc, weather, sound, ...)"
 authors = ["Al DAmico <JavaWiz1@hotmail.com>"]
 readme = "README.md"
