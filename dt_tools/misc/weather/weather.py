@@ -20,7 +20,7 @@ import requests
 from loguru import logger as LOGGER
 
 import dt_tools.net.net_helper as nh
-from dt_tools.misc.census_geoloc import GeoLocation
+from dt_tools.misc.census_geoloc import Census_GeoLocation
 from dt_tools.misc.helpers import ApiTokenHelper
 from dt_tools.misc.sun import Sun
 from dt_tools.misc.weather.common import AQI_DESC, WeatherLocation, WeatherSymbols
@@ -66,7 +66,10 @@ class CurrentConditions():
     _disabled: bool = True
 
     def __post_init__(self):
-        pass
+        if not CURRENT_WEATHER_SETTINGS.API_AVAILABLE:
+            msg = f'No API Token set for {CURRENT_WEATHER_SETTINGS.BASE_URL}.\n'
+            msg += 'Use "set_api_tokens" to cache FREE API token.'
+            raise ConnectionError(msg)
  
     def set_location_via_lat_lon(self, lat: float, lon: float) -> bool:
         """
@@ -100,13 +103,18 @@ class CurrentConditions():
         Returns:
             bool: True if address is resolved and GeoLocation identified, else False
         """
-        if CURRENT_WEATHER_SETTINGS.API_AVAILABLE:
-            geo_locs = GeoLocation.lookup_address(street=street, city=city, state=state, zipcd=zipcd)
-            if len(geo_locs) > 0:
-                loc = geo_locs[0]
-                self.location = WeatherLocation(latitude=loc.latitude, longitude=loc.longitude, location_name=loc.address)
-                return self.refresh()
+        # if CURRENT_WEATHER_SETTINGS.API_AVAILABLE:
+        #     geo_locs = GeoLocation.lookup_address(street=street, city=city, state=state, zipcd=zipcd)
+        #     if len(geo_locs) > 0:
+        #         loc = geo_locs[0]
+        #         self.location = WeatherLocation(latitude=loc.latitude, longitude=loc.longitude, location_name=loc.address)
+        #         return self.refresh()
     
+        geo_locs = Census_GeoLocation.lookup_address(street=street, city=city, state=state, zipcd=zipcd)
+        if len(geo_locs) > 0:
+            loc = geo_locs[0]
+            self.location = WeatherLocation(latitude=loc.latitude, longitude=loc.longitude, location_name=loc.address)
+            return self.refresh()
         return False
     
     def set_location_via_address(self, address: str) -> bool:
@@ -158,10 +166,21 @@ class CurrentConditions():
     @property
     def loc_name(self) -> str:
         return '' if self.location is None else self.location.location_name
+    
+    @loc_name.setter
+    def loc_name(self, val: str):
+        if self.location is not None:
+            self.location.location_name = val
 
     @property
     def loc_region(self) -> str:
         return '' if self.location is None else self.location.location_region
+    
+    @loc_region.setter
+    def loc_region(self, val: str):
+        if self.location is not None:
+            self.location.location_region = val
+            
  
     @property
     def disabled(self) -> bool:
@@ -315,7 +334,7 @@ if __name__ == "__main__":
     lh.configure_logger(log_level=log_lvl, log_format=lh.DEFAULT_CONSOLE_LOGFMT, brightness=False)
 
     weather = CurrentConditions() # Must create new due to throttle timer
-    geo = GeoLocation.lookup_address(street='1812 Edgewood', city="Berkley", state='MI')
+    geo = Census_GeoLocation.lookup_address(street='1812 Edgewood', city="Berkley", state='MI')
     weather.set_location_via_lat_lon(geo[0].latitude, geo[0].longitude)
     LOGGER.success(f'Weather via lat/lon: {weather.lat_long} - {weather.loc_name}')
     LOGGER.info(f'  {weather.to_string()}')

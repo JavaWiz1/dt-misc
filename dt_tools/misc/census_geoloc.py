@@ -31,7 +31,7 @@ class GeoLocationAddress():
         
         return output
 
-class GeoLocation():
+class Census_GeoLocation():
     """
     GeoLocation helper class to help identify lat, long for addresses
     uses geocoding.geo.census.gov restAPI
@@ -116,7 +116,7 @@ class GeoLocation():
 
 if __name__ == "__main__":
     lh.configure_logger(log_level="INFO")
-    geo = GeoLocation()
+    geo = Census_GeoLocation()
     address = input("Street Address: ")
     while len(address) > 0:
         city = input("City   : ")
