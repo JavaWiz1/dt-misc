@@ -4,7 +4,7 @@ Speak a string of text or speak the contents of a text file.
 Currently, these routines expect VLC to be installed.
 
 Example::
-    from dt_tools.os.sound import Accent, Sound
+    from dt_tools.misc.sound import Accent, Sound
 
     obj = Sound()
     obj.speak('This is a test')
@@ -25,6 +25,7 @@ from time import sleep
 from dt_tools.os.os_helper import OSHelper as helper
 from gtts import gTTS
 from loguru import logger as LOGGER
+
 
 class Accent(Enum):
     """Accent codes for speaking"""
@@ -177,17 +178,33 @@ class Sound(object):
 
     @classmethod
     def _is_VLC_installed(cls) -> bool:
-        if helper.is_windows():
-            start_path = pathlib.Path(os.environ['ProgramFiles'])
-            exe = "vlc.exe"
-        else:
-            start_path = pathlib.Path('/usr/bin')
-            exe = 'cvlc'
-        LOGGER.debug(f'- Searching for {exe} starting at {start_path}')
 
-        cls._VLC = helper.find_file(filenm=exe, search_path=start_path)
+        if helper.is_windows():
+            cls._VLC = cls.__chk_vlc_windows()
+        else:
+            cls._VLC = cls.__chk_vlc_linux()
+
         return cls._VLC is not None
+
+    @classmethod
+    def __chk_vlc_windows(cls) -> str:
+        exe = 'vlc.exe'
+        start_path = pathlib.Path(os.environ['ProgramFiles'])
+        LOGGER.debug(f'- Searching for {exe} starting at {start_path}')
+        target = helper.find_file(filenm=exe, search_path=start_path)
+        if target is None:
+            start_path = pathlib.Path(os.environ['ProgramFiles(x86)'])
+            LOGGER.debug(f'- Searching for {exe} starting at {start_path}')
+            target = helper.find_file(filenm=exe, search_path=start_path)
     
+        return target
+    
+    @classmethod
+    def __chk_vlc_linux(cls) -> str:
+        start_path = pathlib.Path('/usr/bin')
+        LOGGER.debug(f'- Searching for "cvlc" starting at {start_path}')
+        return helper.find_file(filenm='cvlc', search_path=start_path)
+
     @classmethod
     def _is_file(cls, token: str) -> bool:
         check_file = pathlib.Path(token)
@@ -199,8 +216,8 @@ class Sound(object):
     
 if __name__ == "__main__":
     import dt_tools.logger.logging_helper as lh
-
     from dt_tools.cli.demos.dt_misc_sound_demo import demo
-
+    
+    LOGGER.enable('dt_tools.misc')
     lh.configure_logger(log_level="INFO")
     demo()
