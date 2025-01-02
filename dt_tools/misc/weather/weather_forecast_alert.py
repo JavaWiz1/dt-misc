@@ -438,5 +438,5 @@ def main():
 
 if __name__ == "__main__":
     import dt_tools.logger.logging_helper as lh
-    lh.configure_logger(log_level="INFO", brightness=False)
+    lh.configure_logger(log_level="INFO", log_format=lh.DEFAULT_DEBUG_LOGFMT, brightness=False)
     main()

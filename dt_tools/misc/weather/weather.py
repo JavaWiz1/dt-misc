@@ -274,22 +274,29 @@ class CurrentConditions():
                 self._disabled = False
                 if self.sunrise is None:
                     sun = Sun(self.location.latitude, self.location.longitude)
-                    self.sunrise = sun.get_gps_sunrise()
-                    self.sunset  = sun.get_gps_sunset()
+                    try:
+                        self.sunrise = sun.get_gps_sunrise()
+                    except Exception as ex:
+                        LOGGER.error(f'Unable to get sunrise: {ex}')
+                    try:
+                        self.sunset  = sun.get_gps_sunset()
+                    except Exception as ex:
+                        LOGGER.error(f'Unable to get sunset: {ex}')
                 return True
 
         except Exception as ex:
             LOGGER.warning('Unable to call weather api')
             LOGGER.warning(f'  URL   : {target_url}')
-            LOGGER.warning(f'  ERROR : {repr(ex)}')
+            LOGGER.exception(f'  ERROR : {repr(ex)}')
             self._connect_retries += 1
             if self._connect_retries > 3:
-                LOGGER.error('Unable to reconnect to weather, disabled feature.')
+                print('dt_tools.weather.weather: Unable to reconnect to weather, disabled feature.', file=sys.stderr)
                 self._disabled = True
             return False
                 
         LOGGER.error(f'Request URL: {target_url}')
         LOGGER.error(f'Response status_code: {resp.status_code}')
+        print('dt_tools.weather.weather: Unable to connect to weather, disabled feature.', file=sys.stderr)
         self._disabled = True
         return False
 
@@ -331,13 +338,14 @@ if __name__ == "__main__":
 
     log_lvl = 'DEBUG' if '-v' in sys.argv else 'INFO'
     
-    lh.configure_logger(log_level=log_lvl, log_format=lh.DEFAULT_CONSOLE_LOGFMT, brightness=False)
+    lh.configure_logger(log_level=log_lvl, log_format=lh.DEFAULT_DEBUG_LOGFMT, brightness=False)
 
     weather = CurrentConditions() # Must create new due to throttle timer
     geo = Census_GeoLocation.lookup_address(street='1812 Edgewood', city="Berkley", state='MI')
     weather.set_location_via_lat_lon(geo[0].latitude, geo[0].longitude)
     LOGGER.success(f'Weather via lat/lon: {weather.lat_long} - {weather.loc_name}')
-    LOGGER.info(f'  {weather.to_string()}')
+    for line in weather.to_string().splitlines():
+        LOGGER.info(f'  {line}')
     LOGGER.info('')
 
     addresses = [
@@ -355,6 +363,7 @@ if __name__ == "__main__":
         weather = CurrentConditions() # Must create new due to throttle timer
         weather.set_location_via_address(address=address)
         LOGGER.success(f'Weather via address: {weather.loc_name}')
-        LOGGER.info(f'  {weather.to_string()}')
+        for line in weather.to_string().splitlines():
+            LOGGER.info(f'  {line}')
         LOGGER.info('')
 

@@ -362,7 +362,7 @@ class GeoLocation:
                     else:
                         LOGGER.error(f'Unknown response: {url} - {json_data}')
                 elif resp.status_code == 429:
-                    LOGGER.warning('GEOLOC throttle...')
+                    LOGGER.debug('GEOLOC throttle...')
                     sleep(1.1)
                 else:
                     throttle = False

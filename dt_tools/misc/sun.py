@@ -69,7 +69,7 @@ class Sun:
         date = datetime.date.today() if date is None else date
         sr = self._calc_sun_time(date, True)
         if sr is None:
-            raise SunTimeException("The sun never rises on this location (on the specified date)")
+            raise SunTimeException(f"The sun never rises on this location (on the specified date) | {date} {self._lat}/{self._lon}")
         
         return sr
 
@@ -109,7 +109,7 @@ class Sun:
         date = datetime.date.today() if date is None else date
         ss = self._calc_sun_time(date, False)
         if ss is None:
-            raise SunTimeException("The sun never sets on this location (on the specified date)")
+            raise SunTimeException(f"The sun never sets on this location (on the specified date) | {date} {self._lat}/{self._lon}")
         
         return ss
 
@@ -129,7 +129,7 @@ class Sun:
         date = datetime.date.today() if date is None else date
         ss = self._calc_sun_time(date, False)
         if ss is None:
-            raise SunTimeException("The sun never sets on this location (on the specified date)")
+            raise SunTimeException(f"The sun never sets on this location (on the specified date) | {date} {self._lat}/{self._lon}")
         
         return ss.astimezone(local_time_zone)
 
