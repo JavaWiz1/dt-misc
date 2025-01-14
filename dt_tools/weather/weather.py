@@ -20,10 +20,10 @@ import requests
 from loguru import logger as LOGGER
 
 import dt_tools.net.net_helper as nh
-from dt_tools.misc.census_geoloc import Census_GeoLocation
+from dt_tools.geoloc.census_geoloc import Census_GeoLocation
 from dt_tools.misc.api_helper import ApiTokenHelper
-from dt_tools.misc.sun import Sun
-from dt_tools.misc.weather.common import AQI_DESC, WeatherLocation, WeatherSymbols
+from dt_tools.geoloc.sun import Sun
+from dt_tools.weather.common import AQI_DESC, WeatherLocation, WeatherSymbols
 
 
 class CURRENT_WEATHER_SETTINGS:
