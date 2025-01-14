@@ -14,7 +14,7 @@ from loguru import logger as LOGGER
 import dt_tools.logger.logging_helper as lh
 from dt_tools.os.os_helper import OSHelper
 from dt_tools.os.project_helper import ProjectHelper
-from dt_tools.misc.sound import Accent, Sound
+from dt_tools.misc.sound.sound import Accent, Sound
 import requests
 
 DEMO_SPEED = 1.25

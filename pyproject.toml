@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "dt-misc"
-version = "0.1.15"
+version = "0.2.0"
 description = "Misc. utility packages (geoloc, weather, sound, ...)"
 authors = ["Al DAmico <JavaWiz1@hotmail.com>"]
 readme = "README.md"
@@ -27,6 +27,7 @@ dt-foundation = "*"
 dt-net = "*"
 timezonefinder = "*"
 tzdata = { version="*", platform="win32" } 
+pyaudio = "^0.2.14"
 
 [[tool.poetry.source]]
 name = "PyPI"
