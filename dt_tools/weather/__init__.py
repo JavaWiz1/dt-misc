@@ -1,3 +1,3 @@
 from loguru import logger
 
-logger.disable('dt_tools.misc.weather')
+logger.disable('dt_tools.weather')

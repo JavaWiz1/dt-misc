@@ -1,3 +1,3 @@
 from loguru import logger
 
-logger.disable('dt_tools.misc.sound')
+logger.disable('dt_tools.sound')
