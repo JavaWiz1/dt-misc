@@ -1,34 +1,48 @@
 import argparse
 import threading
-from dataclasses import dataclass
-from time import sleep
+from dataclasses import asdict, dataclass
+from time import sleep, time
+from typing import Dict, List
 
 import numpy as np
 import pyaudio
 from loguru import logger as LOGGER
 
-import dt_tools.logger.logging_helper as lh
+from dt_tools.os.os_helper import OSHelper
 
 
+@dataclass
 class SampleRate:
     LORES_Quality: int = 22050
     CD_Quality: int    = 44100
     DVD_Quality: int   = 48000
     HIRES_Quality: int = 88200
 
+    @classmethod    
+    def rate_values(cls) -> List[int]:
+        return list(asdict(SampleRate()).values())
+    @classmethod
+    def rate_keys(cls) -> List[str]:
+        return list(asdict(SampleRate()).keys())
+    @classmethod
+    def rate_dict(cls) -> Dict[str, int]:
+        return asdict(SampleRate())
+    
+
 class SoundDefault:
-    FRAME_COUNT: int    = 1024
+    FRAME_COUNT: int    = 2048
     CHANNELS: int       = 1
     SAMPLE_RATE: int    = SampleRate.CD_Quality
-    SAMPLE_THRESHOLD: int = 70
+    SOUND_THRESHOLD: int = 50 if OSHelper.is_windows() else 70
     TRIGGER_CNT: int    = 3
+
 
 @dataclass
 class SoundDetector():
     def __init__(self, frame_count: int = SoundDefault.FRAME_COUNT, 
                        channels: int = SoundDefault.CHANNELS, 
                        sample_rate: SampleRate = SoundDefault.SAMPLE_RATE,
-                       sample_threshold: int = SoundDefault.SAMPLE_THRESHOLD, 
+                       sound_threshold: int = SoundDefault.SOUND_THRESHOLD, 
                        trigger_cnt: int = SoundDefault.TRIGGER_CNT,
                        sound_trigger_callback: callable = None,
                        silence_trigger_callback: callable = None):
@@ -47,7 +61,7 @@ class SoundDetector():
             sample_rate (int, optional): 
                 Number of frames captured per second . Defaults to 44100.
 
-            sample_threshold (int, optional): 
+            snd_threshold (int, optional): 
                 This threshold is a computed value (rms) of the data from the microphone.
                 When rms exeeds this threshold for trigger_cnt cycles, the sound_trigger_callback is executed. 
                 Defaults to 70.
@@ -68,7 +82,7 @@ class SoundDetector():
         self._frame_count: int      = frame_count 
         self._channels: int         = channels
         self._sample_rate: int      = sample_rate
-        self._sample_threshold: int = sample_threshold
+        self._sound_threshold: int  = sound_threshold
         self._trigger_count: int    = trigger_cnt
         self._sound_trigger_callback: callable = sound_trigger_callback
         self._silence_trigger_callback: callable = silence_trigger_callback
@@ -86,7 +100,8 @@ class SoundDetector():
 
         self._current_audio_mean: int   = -1
         self._current_audio_rms: int    = -1
-        self._record_sample: bool = False
+        self._start_time: float         = 0
+        # self._record_sample: bool = False
 
     def _callback_sound_stub(self):
         LOGGER.debug(f'Sound detected.  {self._sample_list}')
@@ -106,18 +121,38 @@ class SoundDetector():
     def is_listening(self) -> bool:
         return self._listening
     
-    def record_sample_sound(self):
-        if not self.is_listening:
-            LOGGER.warning('Not listening, unable to record.')
-            self._record_sample = False
-        self._record_sample = True
+    @property
+    def elapsed_monitoring_seconds(self) -> float:
+        """Number of seconds monitoring has been enabled"""
+        if self._start_time > 0:
+            return float(f"{(time() - self._start_time):7.2}")
+        
+        return 0.0
 
-        return self._record_sample
+    # def record_sample_sound(self):
+    #     if not self.is_listening:
+    #         LOGGER.warning('Not listening, unable to record.')
+    #         self._record_sample = False
+    #     self._record_sample = True
+
+    #     return self._record_sample
     
     def set_sound_callback(self, func: callable):
+        """
+        Set the routine to be called when a sound occurs.
+
+        Args:
+            func (callable): the function name
+        """
         self._sound_trigger_callback = func
     
     def set_silence_callback(self, func: callable):
+        """
+        Set the routine to be called when silence occurs.
+
+        Args:
+            func (callable): the function name
+        """
         self._silence_trigger_callback = func
 
 
@@ -131,7 +166,6 @@ class SoundDetector():
         if self.is_listening:
             LOGGER.warning('Already listening, Killing prior instance.')
             self.stop()
-        
         self._pyaudio = pyaudio.PyAudio()
         self._stream = self._pyaudio.open(format=self._format,
                               channels=self._channels,
@@ -145,6 +179,12 @@ class SoundDetector():
         return True
 
     def stop(self) -> bool:
+        """
+        Close the audio stream and stop listening.
+
+        Returns:
+            bool: True if thread is stopped, False if there was an error.
+        """
         if not self.is_listening:
             LOGGER.warning('Not listening.')
             return True
@@ -169,20 +209,21 @@ class SoundDetector():
         LOGGER.debug(f'- Frame count   : {self._frame_count}')
         LOGGER.debug(f'- Sample rate   : {self._sample_rate}')
         LOGGER.debug(f'- Trigger cnt   : {self._trigger_count}')
-        LOGGER.debug(f'- Snd Threshold : {self._sample_threshold}')
+        LOGGER.debug(f'- Snd Threshold : {self._sound_threshold}')
         LOGGER.debug(f'- Sound CB      : {self._sound_trigger_callback.__name__}')
         LOGGER.debug(f'- Silence CB    : {self._silence_trigger_callback.__name__}')
         LOGGER.debug('Listening...')
         was_silent: bool = True
         sound_cnt: int  = -1
         silent_cnt: int = -1
+        self._start_time = time()
         try:
             while self.is_listening:
                 raw_data = self._get_audio_stream_data()
                 # Convert buffer to numpy array
                 np_data  = np.frombuffer(raw_data, dtype=np.short)[-self._frame_count:]
                 audio_data_array = np.frombuffer(np_data, dtype=np.int16)
-                sound_detected = self._is_sound_detected(audio_data_array, self._sample_threshold)
+                sound_detected = self._is_sound_detected(audio_data_array, self._sound_threshold)
                 if sound_detected:
                     silent_cnt = 0
                     if was_silent:
@@ -190,11 +231,11 @@ class SoundDetector():
                         if sound_cnt >= self._trigger_count:
                             if self._sound_trigger_callback is not None:
                                 self._sound_trigger_callback()
-                                if self._record_sample:
-                                    self._save_audio_sample(raw_data)
-                                    self._record_sample = False
-                            else:
-                                LOGGER.trace(f"Sound detected!  [{self._current_audio_rms:4.2f}] {self._current_audio_mean:7.2f}  {sound_cnt}/{silent_cnt}")
+                            #     if self._record_sample:
+                            #         self._save_audio_sample(raw_data)
+                            #         self._record_sample = False
+                            # else:
+                            #     LOGGER.trace(f"Sound detected!  [{self._current_audio_rms:4.2f}] {self._current_audio_mean:7.2f}  {sound_cnt}/{silent_cnt}")
                             was_silent = False
                             sound_cnt = 0
                 else: # Currently identified as silent
@@ -204,15 +245,17 @@ class SoundDetector():
                         if silent_cnt >= self._trigger_count:
                             if self._silence_trigger_callback is not None:
                                 self._silence_trigger_callback()
-                            else:
-                                LOGGER.trace(f'Silence.         [{self._current_audio_rms:4.2f}] {self._current_audio_mean:7.2f}  {sound_cnt}/{silent_cnt}')
-                                LOGGER.trace('')
+                            # else:
+                            #     LOGGER.trace(f'Silence.         [{self._current_audio_rms:4.2f}] {self._current_audio_mean:7.2f}  {sound_cnt}/{silent_cnt}')
+                            #     LOGGER.trace('')
                             was_silent = True
                             silent_cnt = 0
         
         except Exception as ex:
             LOGGER.exception(f'Uh oh - {ex}')
             self.stop()
+
+        self._start_time = 0
 
     def _get_audio_stream_data(self) -> bytes:
         # Loop while buffer fills
@@ -280,15 +323,13 @@ def __stop_handler(signum, frame):
     __STOP_REQUSTED = True
 
 if __name__ == '__main__':
-    from dt_tools.os.os_helper import OSHelper
-    
-    SoundDefault.SAMPLE_THRESHOLD = 50 if OSHelper.is_windows() else 70
+    import dt_tools.logger.logging_helper as lh
     
     parser = argparse.ArgumentParser()
     parser.add_argument('-s', '--size', type=int, default=SoundDefault.FRAME_COUNT, 
-        help=f'Sample buffer size.  Default {SoundDefault.FRAME_COUNT} bytes')
-    parser.add_argument('-t', '--threshold', type=int, default=SoundDefault.SAMPLE_THRESHOLD,
-        help = f'Sound threshold.  Default {SoundDefault.SAMPLE_THRESHOLD}.')
+        help    =f'Sample buffer size.  Default {SoundDefault.FRAME_COUNT} bytes')
+    parser.add_argument('-t', '--threshold', type=int, default=SoundDefault.SOUND_THRESHOLD,
+        help = f'Sound threshold.  Default {SoundDefault.SOUND_THRESHOLD}.')
     parser.add_argument('-c', '--count', type=int, default=SoundDefault.TRIGGER_CNT,
         help=f'How many time threshold needs to be exceeded to count as sound.  Default {SoundDefault.TRIGGER_CNT}.')
     parser.add_argument('-r', '--rate', type=SampleRate, default=SoundDefault.SAMPLE_RATE,
@@ -297,9 +338,6 @@ if __name__ == '__main__':
         help='Verbose logging (-v DEBUG, -vv TRACE)')
     args = parser.parse_args()
 
-    CHUNK = args.size
-    RMS_THRESHOLD = args.threshold
-    TRIGGER_CNT = args.count
     if args.verbose > 1:
         log_level = "TRACE"
     elif args.verbose == 1:
@@ -315,11 +353,9 @@ if __name__ == '__main__':
     OSHelper.enable_ctrl_c_handler(__stop_handler)
     snd_monitor = SoundDetector(frame_count=args.size,
                                 sample_rate=args.rate,
-                                sample_threshold=args.threshold,
+                                sound_threshold=args.threshold,
                                 trigger_cnt=args.count)
     snd_monitor.start()
-    sleep(5)
-    snd_monitor.record_sample_sound()
     while not __STOP_REQUSTED:
         sleep(1)
 
