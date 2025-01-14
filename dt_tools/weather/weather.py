@@ -129,7 +129,7 @@ class CurrentConditions():
         Returns:
             bool: True if address is resolved and GeoLocation identified, else False
         """
-        from dt_tools.misc.geoloc import GeoLocation as GeoLoc
+        from dt_tools.geoloc.geoloc import GeoLocation as GeoLoc
         if CURRENT_WEATHER_SETTINGS.API_AVAILABLE:
             geo = GeoLoc()
             if geo.get_location_via_address_string(address):

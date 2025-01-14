@@ -20,7 +20,7 @@ from typing import Tuple, Union
 import requests
 from loguru import logger as LOGGER
 
-from dt_tools.misc.weather.common import ForecastType, States, Unknown, WeatherLocation
+from dt_tools.weather.common import ForecastType, States, Unknown, WeatherLocation
 from dt_tools.console.console_helper import ConsoleHelper as ch
 from dt_tools.console.console_helper import ColorFG
 
