@@ -1,10 +1,6 @@
 [tool.poetry]
 name = "dt-misc"
-<<<<<<< HEAD
-version = "0.1.12"
-=======
 version = "0.2.4"
->>>>>>> ab68782d10e19f82cccc737ee6e67709cfae545f
 description = "Misc. utility packages (geoloc, weather, sound, ...)"
 authors = ["Al DAmico <JavaWiz1@hotmail.com>"]
 readme = "README.md"
