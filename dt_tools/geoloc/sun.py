@@ -14,8 +14,7 @@ from dateutil import tz
 from loguru import logger as LOGGER
 from zoneinfo import ZoneInfo
 
-from dt_tools.misc.geoloc import GeoLocation
-
+from dt_tools.geoloc.geoloc import GeoLocation
 
 GEO = GeoLocation()
 

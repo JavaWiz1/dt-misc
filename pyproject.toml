@@ -1,6 +1,10 @@
 [tool.poetry]
 name = "dt-misc"
+<<<<<<< HEAD
 version = "0.1.12"
+=======
+version = "0.2.4"
+>>>>>>> ab68782d10e19f82cccc737ee6e67709cfae545f
 description = "Misc. utility packages (geoloc, weather, sound, ...)"
 authors = ["Al DAmico <JavaWiz1@hotmail.com>"]
 readme = "README.md"
@@ -19,14 +23,15 @@ include = ["CHANGELOG.md"]
 
 [tool.poetry.dependencies]
 python = "^3.10"
-loguru = "^0.7.2"
+loguru = "*"
 gtts = "^2.5.2"
 # dt-foundation = {path = "../dt-foundation", develop = true }
 # dt-net = {path = "../dt-net", develop = true }
 dt-foundation = "*"
 dt-net = "*"
-timezonefinder = "^6.5.3"
+timezonefinder = "*"
 tzdata = { version="*", platform="win32" } 
+pyaudio = "^0.2.14"
 
 [[tool.poetry.source]]
 name = "PyPI"

@@ -65,19 +65,30 @@ class Sound(object):
 
     # -- Public Functions -------------------------------------------------------------------------------------------
     @classmethod
-    def speak(cls, in_token: str, speed: float = 1.0, accent: Accent = Accent.UnitedStates, ignore_in_progress: bool = False, wait: bool = True, delete_mp3:bool = True) -> bool:
+    def speak(cls, in_token: str, speed: float = 1.0, accent: Accent = Accent.UnitedStates, ignore_in_progress: bool = False, wait: bool = True, delete_audio:bool = True) -> bool:
         """
         Speak the text string or contents of the file
 
         NOTE: Speech will block until done if already speaking.
 
         Args:
-            in_token (str): File or string of text to be spoken
-            speed (float, optional): Speed (cadence) of voice. Higher numbers faster cadence. Defaults to 1.0.
-            accent (Accent, optional): Accent of speaker. Defaults to Accent.UnitedStates.
-            ignore_in_progress: (bool, optional): Ignore request if speech is already in progress. Defaults to False
-            wait: (bool, optional): Wait for speech to finish before returning. Defaults to True.
-            delete_mp3 (bool, optional): Remove generate mp3 file. Defaults to True
+            in_token (str): 
+                File or string of text to be spoken
+
+            speed (float, optional): 
+                Speed (cadence) of voice. Higher numbers faster cadence. Defaults to 1.0.
+
+            accent (Accent, optional): 
+                Accent of speaker. Defaults to Accent.UnitedStates.
+
+            ignore_in_progress: (bool, optional): 
+                Ignore request if speech is already in progress. Defaults to False
+
+            wait: (bool, optional): 
+                Wait for speech to finish before returning. Defaults to True.
+
+            delete_audio (bool, optional): 
+                Remove generated audio file. Defaults to True
 
         Returns:
             bool: True if successful else False
@@ -94,7 +105,7 @@ class Sound(object):
         cls._locked = True
         text = pathlib.Path(in_token).read_text() if cls._is_file(in_token) else in_token
 
-        kwargs = {'text': text, 'speed': speed, 'accent': accent, 'delete_mp3': delete_mp3}
+        kwargs = {'text': text, 'speed': speed, 'accent': accent, 'delete_audio': delete_audio}
         t = threading.Thread(target=cls._speak, kwargs=kwargs)
         t.start()
         cls._speak_thread_id = t.native_id
@@ -135,8 +146,8 @@ class Sound(object):
     
     # -- Private Functions -------------------------------------------------------------------------------------------
     @classmethod
-    def _speak(cls, text: str, speed: float, accent: Accent, delete_mp3) -> int:
-        sound_file = helper.get_temp_filename(prefix='dt-', dotted_suffix='.mp3')
+    def _speak(cls, text: str, speed: float, accent: Accent, delete_audio: bool = True) -> int:
+        sound_file = helper.get_temp_filename(prefix='dt-', dotted_suffix='.wav')
         LOGGER.debug(f'Speak thread {cls._speak_thread_id} started.')
         # tld top level domain for English
         # com.au (Australian), co.uk (United Kingdom), us (United States),    ca (Canada), 
@@ -167,12 +178,16 @@ class Sound(object):
             msg = f'Sorry, sound file {sound_file} does not exist.'
             LOGGER.warning(msg)
             return -1
-        
-        LOGGER.debug(f'Playing file: {cls._VLC} --intf dummy --rate {speed} --play-and-exit {sound_file}')
-        if helper.is_windows():
-            ret = os.system(f'"{cls._VLC}" --intf dummy --rate {speed} --play-and-exit {sound_file}')
+
+        if cls._is_VLC_installed():        
+            LOGGER.debug(f'Playing file: {cls._VLC} --intf dummy --rate {speed} --play-and-exit {sound_file}')
+            if helper.is_windows():
+                ret = os.system(f'"{cls._VLC}" --intf dummy --rate {speed} --play-and-exit {sound_file}')
+            else:
+                ret = os.system(f'{cls._VLC} --rate {speed} --play-and-exit {sound_file}')
         else:
-            ret = os.system(f'{cls._VLC} --rate {speed} --play-and-exit {sound_file}')
+            LOGGER.warning('Unable to play file, VLC not detected.')
+            ret = -1
 
         return  ret
 
@@ -219,5 +234,5 @@ if __name__ == "__main__":
     from dt_tools.cli.demos.dt_misc_sound_demo import demo
     
     LOGGER.enable('dt_tools.misc')
-    lh.configure_logger(log_level="INFO")
+    lh.configure_logger(log_level="DEBUG")
     demo()
