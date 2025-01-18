@@ -1,8 +1,9 @@
 import argparse
+import pathlib
 import threading
 from dataclasses import asdict, dataclass
 from time import sleep, time
-from typing import Dict, List
+from typing import Dict, List, Union
 
 import numpy as np
 import pyaudio
@@ -98,10 +99,13 @@ class SoundDetector():
         self._monitor_thread: threading.Thread = None
         self._sample_list: list = [0.0]
 
+        self._capture: bool             = False
+        self._capture_path: pathlib.Path = None
+        self._capture_file: pathlib.Path = None
         self._current_audio_mean: int   = -1
         self._current_audio_rms: int    = -1
         self._start_time: float         = 0
-        # self._record_sample: bool = False
+        self._elpased_secs: float       = 0
 
     def _callback_sound_stub(self):
         LOGGER.debug(f'Sound detected.  {self._sample_list}')
@@ -122,21 +126,53 @@ class SoundDetector():
         return self._listening
     
     @property
+    def capture_path(self) -> Union[str, None]:
+        return self._capture_path
+    @capture_path.setter
+    def capture_path(self, val: str):
+        pth = pathlib.Path(val)
+        if pth.is_dir:
+            self._capture_path = pth
+        else:
+            LOGGER.warning(f'Unable to set capture path to {pth}')
+
+    @property
+    def capture_data(self) -> bool:
+        return self._capture
+    
+    @capture_data.setter
+    def capture_data(self, enable_capture: bool):
+        if self._capture:
+            if enable_capture:
+                LOGGER.warning('Already in capture mode')
+            else:
+            # Turn off
+                LOGGER.info('Capture disabled.')
+                self._capture = False
+        else:
+            if enable_capture:
+                tgt_path = '.' if self.capture_path is None else self.capture_path
+                c_filename = OSHelper.get_temp_filename(prefix='audioCapture',
+                                                        dotted_suffix='.csv', 
+                                                        target_dir=tgt_path,
+                                                        keep=True)
+                self._capture_file = pathlib.Path(c_filename)
+                capture_line = 'sound_detected,threshold,np_mean,rms,audio_data\n'
+                with self._capture_file.open('a') as c_file:
+                    c_file.write(capture_line)
+                self._capture = True
+                LOGGER.info(f'Capture enabled: {self._capture_file}')
+            else:
+                LOGGER.warning('Capture not enabled, cannot disable.')
+
+    @property
     def elapsed_monitoring_seconds(self) -> float:
         """Number of seconds monitoring has been enabled"""
         if self._start_time > 0:
             return float(f"{(time() - self._start_time):7.2}")
         
-        return 0.0
+        return self._elpased_secs
 
-    # def record_sample_sound(self):
-    #     if not self.is_listening:
-    #         LOGGER.warning('Not listening, unable to record.')
-    #         self._record_sample = False
-    #     self._record_sample = True
-
-    #     return self._record_sample
-    
     def set_sound_callback(self, func: callable):
         """
         Set the routine to be called when a sound occurs.
@@ -189,6 +225,9 @@ class SoundDetector():
             LOGGER.warning('Not listening.')
             return True
 
+        if self.capture_data:
+            self.capture_data = False
+
         self._listening = False
         try:
             self._monitor_thread.join()
@@ -231,11 +270,6 @@ class SoundDetector():
                         if sound_cnt >= self._trigger_count:
                             if self._sound_trigger_callback is not None:
                                 self._sound_trigger_callback()
-                            #     if self._record_sample:
-                            #         self._save_audio_sample(raw_data)
-                            #         self._record_sample = False
-                            # else:
-                            #     LOGGER.trace(f"Sound detected!  [{self._current_audio_rms:4.2f}] {self._current_audio_mean:7.2f}  {sound_cnt}/{silent_cnt}")
                             was_silent = False
                             sound_cnt = 0
                 else: # Currently identified as silent
@@ -245,16 +279,14 @@ class SoundDetector():
                         if silent_cnt >= self._trigger_count:
                             if self._silence_trigger_callback is not None:
                                 self._silence_trigger_callback()
-                            # else:
-                            #     LOGGER.trace(f'Silence.         [{self._current_audio_rms:4.2f}] {self._current_audio_mean:7.2f}  {sound_cnt}/{silent_cnt}')
-                            #     LOGGER.trace('')
                             was_silent = True
                             silent_cnt = 0
         
         except Exception as ex:
             LOGGER.exception(f'Uh oh - {ex}')
             self.stop()
-
+            
+        self._elpased_secs = float(f"{(time() - self._start_time):7.2}")
         self._start_time = 0
 
     def _get_audio_stream_data(self) -> bytes:
@@ -277,43 +309,15 @@ class SoundDetector():
         self._current_audio_mean = np_mean
         self._current_audio_rms  = rms
 
-        self._sample_list.append(f'{self._current_audio_rms:5.2f}')
+        self._sample_list.append(float(f'{self._current_audio_rms:9.4f}'))
         if len(self._sample_list) > self._trigger_count:
             self._sample_list = self._sample_list[-self._trigger_count:]
+        if self.capture_data:
+            capture_line = f'{sound_detected}, {threshold}, {np_mean:9.4f}, {rms:9.4f}, {self._sample_list}\n'
+            with self._capture_file.open("a") as f:
+                f.write(capture_line)
 
         return sound_detected
-
-    # def _save_audio_sample(self, raw_data: bytes):
-    #     import wave
-    #     import os
-    #     import pathlib
-
-    #     audio_file = OSHelper.get_temp_filename(prefix='sound_detector_', dotted_suffix='.wav', target_dir=os.curdir)
-    #     LOGGER.debug(f'Save sample to {audio_file}')
-    #     LOGGER.debug('- open')
-    #     wf = wave.open(audio_file, "wb")
-    #     LOGGER.debug('- setnchannels')
-    #     wf.setnchannels(self._channels)
-    #     LOGGER.debug('- setsamplewidth')
-    #     wf.setsampwidth(self._pyaudio.get_sample_size(self._format))
-    #     LOGGER.debug('- setframerate')
-    #     wf.setframerate(self._sample_rate)
-    #     LOGGER.debug('- writeframes')
-    #     try:
-    #         wf.writeframes(raw_data)
-    #         saved = True
-    #     except Exception as ex:
-    #         LOGGER.error(f'- Unable to write {audio_file} - {ex}')
-    #         saved = False
-    #     finally:
-    #         LOGGER.debug('- close')
-    #         wf.close()
-    #         if not saved:
-    #             LOGGER.debug('- remove bad file.')
-    #             pathlib.Path(audio_file).unlink(missing_ok=True)
-
-    #     return saved
-    
 
 
 
@@ -348,13 +352,13 @@ if __name__ == '__main__':
     lh.configure_logger(log_level=log_level, log_format=lh.DEFAULT_DEBUG_LOGFMT)
     LOGGER.debug(f'Log level set to {log_level}')
 
-    # p = pyaudio.PyAudio()
-    # listen(p)
     OSHelper.enable_ctrl_c_handler(__stop_handler)
     snd_monitor = SoundDetector(frame_count=args.size,
                                 sample_rate=args.rate,
                                 sound_threshold=args.threshold,
                                 trigger_cnt=args.count)
+    # snd_monitor.capture_path = './docs'
+    snd_monitor.capture_data = True
     snd_monitor.start()
     while not __STOP_REQUSTED:
         sleep(1)
