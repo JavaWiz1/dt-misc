@@ -8,9 +8,9 @@ from loguru import logger as LOGGER
 
 import dt_tools.logger.logging_helper as lh
 from dt_tools.os.os_helper import OSHelper
-from dt_tools.misc.census_geoloc import Census_GeoLocation as CensusGeoLocation
-from dt_tools.misc.census_geoloc import GeoLocationAddress
-from dt_tools.misc.geoloc import GeoLocation
+from dt_tools.geoloc.census_geoloc import Census_GeoLocation as CensusGeoLocation
+from dt_tools.geoloc.census_geoloc import GeoLocationAddress
+from dt_tools.geoloc.geoloc import GeoLocation
 
 
 def _print_object(obj):

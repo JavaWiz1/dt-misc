@@ -105,7 +105,8 @@ class SoundDetector():
         self._current_audio_mean: int   = -1
         self._current_audio_rms: int    = -1
         self._start_time: float         = 0
-        self._elpased_secs: float       = 0
+        self._elapsed_secs: float       = 0
+        self._name: str                 = None
 
     def _callback_sound_stub(self):
         LOGGER.debug(f'Sound detected.  {self._sample_list}')
@@ -113,6 +114,13 @@ class SoundDetector():
     def _callback_silence_stub(self):
         LOGGER.debug(f'Silence.         {self._sample_list}')
 
+    @property
+    def name(self) -> str:
+        if self._name is None:
+            pa = pyaudio.PyAudio() 
+            self._name = pa.get_default_input_device_info().get('name', 'Unknown')
+        return self._name
+    
     @property
     def current_audio_mean(self) -> int:
         return self._current_audio_mean
@@ -171,7 +179,7 @@ class SoundDetector():
         if self._start_time > 0:
             return float(f"{(time() - self._start_time):7.2}")
         
-        return self._elpased_secs
+        return self._elapsed_secs
 
     def set_sound_callback(self, func: callable):
         """
@@ -286,7 +294,7 @@ class SoundDetector():
             LOGGER.exception(f'Uh oh - {ex}')
             self.stop()
             
-        self._elpased_secs = float(f"{(time() - self._start_time):7.2}")
+        self._elapsed_secs = float(f"{(time() - self._start_time):7.2}")
         self._start_time = 0
 
     def _get_audio_stream_data(self) -> bytes:
