@@ -165,7 +165,9 @@ class SoundDetector():
                                                         target_dir=tgt_path,
                                                         keep=True)
                 self._capture_file = pathlib.Path(c_filename)
-                capture_line = 'sound_detected,threshold,np_mean,rms,audio_data\n'
+                rng = [str(x) for x in list(range(self._trigger_count))]
+                sample_headers = f"Sample{', Sample'.join(rng)}"                
+                capture_line = f'sound_detected,threshold,np_mean,rms,{sample_headers}\n'
                 with self._capture_file.open('a') as c_file:
                     c_file.write(capture_line)
                 self._capture = True
@@ -317,11 +319,12 @@ class SoundDetector():
         self._current_audio_mean = np_mean
         self._current_audio_rms  = rms
 
-        self._sample_list.append(float(f'{self._current_audio_rms:9.4f}'))
+        self._sample_list.append(float(f'{self._current_audio_rms:.4f}'))
         if len(self._sample_list) > self._trigger_count:
             self._sample_list = self._sample_list[-self._trigger_count:]
         if self.capture_data:
-            capture_line = f'{sound_detected}, {threshold}, {np_mean:9.4f}, {rms:9.4f}, {self._sample_list}\n'
+            samples = [f'{x:.4f}' for x in self._sample_list]
+            capture_line = f'{sound_detected}, {threshold}, {np_mean:.4f}, {rms:.4f}, {", ".join(samples)}\n'
             with self._capture_file.open("a") as f:
                 f.write(capture_line)
 
