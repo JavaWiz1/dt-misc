@@ -302,8 +302,10 @@ class SoundDetector():
     def _callback_silence_stub(self):
         LOGGER.debug(f'Silence.         {self._sample_list}')
 
-    def _monitor(self):
+    def _output_settings(self):
         LOGGER.debug('Sound monitoring starting.')
+        LOGGER.debug(f'- Microphone ID : {self._device_id}')
+        LOGGER.debug(f'           Name : {self._name}')
         LOGGER.debug(f'- Channels      : {self._channels}')
         LOGGER.debug(f'- Format        : {self._format}')
         LOGGER.debug(f'- Frame count   : {self._frame_count}')
@@ -312,6 +314,9 @@ class SoundDetector():
         LOGGER.debug(f'- Snd Threshold : {self._sound_threshold}')
         LOGGER.debug(f'- Sound CB      : {self._sound_trigger_callback.__name__}')
         LOGGER.debug(f'- Silence CB    : {self._silence_trigger_callback.__name__}')
+
+    def _monitor(self):
+        self._output_settings()
         LOGGER.debug('Listening...')
         was_silent: bool = True
         sound_cnt: int  = -1
@@ -459,6 +464,7 @@ if __name__ == '__main__':
                                 sample_rate=args.rate,
                                 sound_threshold=args.threshold,
                                 trigger_cnt=args.count)
+    
     _output_audio_device_report()
     # snd_monitor.capture_path = './docs'
     snd_monitor.capture_data = True
