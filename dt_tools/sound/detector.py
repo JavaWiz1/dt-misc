@@ -99,6 +99,7 @@ class SoundDetector():
         if silence_trigger_callback is None:
             self._silence_trigger_callback = self._callback_silence_stub
 
+        self._device_name: str      = None
         self._format: int              = pyaudio.paInt16
         self._listening: bool          = False
         self._pyaudio: pyaudio.PyAudio = None
@@ -135,6 +136,20 @@ class SoundDetector():
             self._name = pa.get_default_input_device_info().get('name', 'Unknown')
         return self._name
 
+    @property
+    def microphone_id(self) -> int:
+        return self._device_id
+    @property
+    def microphone_name(self) -> str:
+        if self._device_name is None:
+            try:
+                dev_info = pyaudio.PyAudio().get_device_info_by_index(self.microphone_id)
+                self._device_name = dev_info.get('name', 'Unknown')
+            except Exception as ex:
+                self._device_name = f'Unknown - {ex}'
+    
+        return self._device_name
+    
     @property
     def default_host_api_info(self) -> Union[dict, None]:
         try:
