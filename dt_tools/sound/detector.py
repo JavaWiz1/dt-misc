@@ -484,6 +484,11 @@ if __name__ == '__main__':
                                 trigger_cnt=args.count)
     
     _output_audio_device_report()
+    
+    LOGGER.info(f'Microphone idx: {snd_monitor.microphone_id}')
+    LOGGER.info(f'          name: {snd_monitor.microphone_name}')
+    LOGGER.info('')
+
     # snd_monitor.capture_path = './docs'
     snd_monitor.capture_data = True
     snd_monitor.start()
