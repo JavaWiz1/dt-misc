@@ -40,7 +40,8 @@ class SoundDefault:
 
 @dataclass
 class SoundDetector():
-    def __init__(self, frame_count: int = SoundDefault.FRAME_COUNT, 
+    def __init__(self, microphone_id: int = -1,
+                       frame_count: int = SoundDefault.FRAME_COUNT, 
                        channels: int = SoundDefault.CHANNELS, 
                        sample_rate: SampleRate = SoundDefault.SAMPLE_RATE,
                        sound_threshold: int = SoundDefault.SOUND_THRESHOLD, 
@@ -52,6 +53,9 @@ class SoundDetector():
         sound detected or silence (after sound stops).
 
         Args:
+            microphone_id (int, optional):
+                ID associated with the microphone device.  If -1, default microphone will be used.
+
             frame_count (int, optional): 
                 Number of audio frames to capture when analyzing if a sound has been made.
                 Basically a buffer size. Defaults to 1024.
@@ -80,47 +84,84 @@ class SoundDetector():
                 called and will print a debug message to the console. Defaults to None.
 
         """
+        self._device_id: int        = microphone_id if microphone_id >= 0 else self.default_microphone_id
         self._frame_count: int      = frame_count 
         self._channels: int         = channels
         self._sample_rate: int      = sample_rate
         self._sound_threshold: int  = sound_threshold
         self._trigger_count: int    = trigger_cnt
-        self._sound_trigger_callback: callable = sound_trigger_callback
+        
+        self._sound_trigger_callback: callable   = sound_trigger_callback
         self._silence_trigger_callback: callable = silence_trigger_callback
+
         if sound_trigger_callback is None:
             self._sound_trigger_callback = self._callback_sound_stub
         if silence_trigger_callback is None:
             self._silence_trigger_callback = self._callback_silence_stub
 
-        self._format: int           = pyaudio.paInt16
+        self._format: int              = pyaudio.paInt16
         self._listening: bool          = False
         self._pyaudio: pyaudio.PyAudio = None
         self._stream = pyaudio._Stream = None
         self._monitor_thread: threading.Thread = None
-        self._sample_list: list = [0.0]
+        self._sample_list: list        = [0.0]
 
-        self._capture: bool             = False
+        self._capture: bool              = False
         self._capture_path: pathlib.Path = None
         self._capture_file: pathlib.Path = None
-        self._current_audio_mean: int   = -1
-        self._current_audio_rms: int    = -1
-        self._start_time: float         = 0
-        self._elapsed_secs: float       = 0
-        self._name: str                 = None
+        self._current_audio_mean: int    = -1
+        self._current_audio_rms: int     = -1
+        self._start_time: float          = 0
+        self._elapsed_secs: float        = 0
+        self._name: str                  = None
 
-    def _callback_sound_stub(self):
-        LOGGER.debug(f'Sound detected.  {self._sample_list}')
-
-    def _callback_silence_stub(self):
-        LOGGER.debug(f'Silence.         {self._sample_list}')
 
     @property
-    def name(self) -> str:
+    def default_microphone_id(self) -> int:
+        pa = pyaudio.PyAudio()
+        mic_id = -1
+        try:
+            host_info = pa.get_default_host_api_info()
+            mic_id = int(host_info.get('defaultInputDevice'))
+        except IOError as ioe:
+            LOGGER.debug(f'Unable to identify default microphone id. {ioe}')
+        
+        return mic_id
+
+    @property
+    def default_microphone_name(self) -> str:
         if self._name is None:
             pa = pyaudio.PyAudio() 
             self._name = pa.get_default_input_device_info().get('name', 'Unknown')
         return self._name
+
+    @property
+    def default_host_api_info(self) -> Union[dict, None]:
+        try:
+            device = pyaudio.PyAudio().get_default_host_api_info()
+        except IOError as ioe:
+            LOGGER.warning(f'Audio Host Info: {ioe}')
+            device = None
+        return device
+
+    @property
+    def default_input_device_info(self) -> Union[dict, None]:
+        try:
+            device = pyaudio.PyAudio().get_default_input_device_info()
+        except IOError as ioe:
+            LOGGER.warning(f'Audio Input Device: {ioe}')
+            device = None
+        return device
     
+    # @property
+    # def output_device_output(self) -> Union[dict, None]:
+    #     try:
+    #         device = pyaudio.PyAudio().get_default_output_device_info()
+    #     except IOError as ioe:
+    #         LOGGER.trace(f'Audio Output Device: {ioe}')
+    #         device = None
+    #     return device
+
     @property
     def current_audio_mean(self) -> int:
         return self._current_audio_mean
@@ -133,6 +174,7 @@ class SoundDetector():
     def is_listening(self) -> bool:
         return self._listening
     
+
     @property
     def capture_path(self) -> Union[str, None]:
         return self._capture_path
@@ -144,10 +186,10 @@ class SoundDetector():
         else:
             LOGGER.warning(f'Unable to set capture path to {pth}')
 
+
     @property
     def capture_data(self) -> bool:
-        return self._capture
-    
+        return self._capture    
     @capture_data.setter
     def capture_data(self, enable_capture: bool):
         if self._capture:
@@ -183,25 +225,7 @@ class SoundDetector():
         
         return self._elapsed_secs
 
-    def set_sound_callback(self, func: callable):
-        """
-        Set the routine to be called when a sound occurs.
-
-        Args:
-            func (callable): the function name
-        """
-        self._sound_trigger_callback = func
-    
-    def set_silence_callback(self, func: callable):
-        """
-        Set the routine to be called when silence occurs.
-
-        Args:
-            func (callable): the function name
-        """
-        self._silence_trigger_callback = func
-
-
+    #-- Operate functions (Start/Stop) ------------------------------------------------------
     def start(self) -> bool:
         """
         Open the audio stream and begin listening.
@@ -250,6 +274,33 @@ class SoundDetector():
         self._pyaudio = None
         
         return True
+
+    #-- Set callback functions ------------------------------------------------------------
+    def set_sound_callback(self, func: callable):
+        """
+        Set the routine to be called when a sound occurs.
+
+        Args:
+            func (callable): the function name
+        """
+        self._sound_trigger_callback = func
+    
+    def set_silence_callback(self, func: callable):
+        """
+        Set the routine to be called when silence occurs.
+
+        Args:
+            func (callable): the function name
+        """
+        self._silence_trigger_callback = func
+
+
+    #== Private Functions ================================================================
+    def _callback_sound_stub(self):
+        LOGGER.debug(f'Sound detected.  {self._sample_list}')
+
+    def _callback_silence_stub(self):
+        LOGGER.debug(f'Silence.         {self._sample_list}')
 
     def _monitor(self):
         LOGGER.debug('Sound monitoring starting.')
@@ -331,11 +382,51 @@ class SoundDetector():
         return sound_detected
 
 
+def _output_audio_device_report():
+    pa = pyaudio.PyAudio()
+    default_host_api = pa.get_default_host_api_info().get('index')
+    for h_idx in range(pa.get_host_api_count()):
+        api_info = pa.get_host_api_info_by_index(h_idx)
+        num_devices = api_info.get('deviceCount')
+        dflt_i_idx = api_info.get('defaultInputDevice')
+        dflt_o_idx = api_info.get('defaultOutputDevice')
+        api_name   = api_info.get('name')
+        LOGGER.info('='*93)
+        if h_idx == default_host_api:
+            LOGGER.success(f'Host API [{h_idx:1}] - {api_name} {" [DEFAULT]" if h_idx == default_host_api else ""}')
+        else:
+            LOGGER.info(f'Host API [{h_idx:1}] - {api_name} {" [DEFAULT]" if h_idx == default_host_api else ""}')
+        LOGGER.info(f'devices: {num_devices:2}   default input device: {dflt_i_idx:2}   default output device: {dflt_o_idx:2}')
+        LOGGER.info('-'*93)
+        LOGGER.info('h / d  idx Name                           ic oc  li lat  lo lat  hi lat  ho lat  Sample Rate')
+        LOGGER.info('------ --- ------------------------------ -- --  ------- ------- ------- ------- -----------')
+        for d_idx in range(api_info.get('deviceCount')):
+            device = pa.get_device_info_by_host_api_device_index(h_idx, d_idx)
+            if device.get('index') in [dflt_i_idx, dflt_o_idx]:
+                log_level = "SUCCESS"
+            else:
+                log_level = "INFO"
+            dev_idx     = device.get('index')
+            dev_name    = device.get('name')
+            i_channels  = device.get('maxInputChannels')
+            o_channels  = device.get('maxOutputChannels')
+            li_latency  = device.get('defaultLowInputLatency')
+            lo_latency  = device.get('defaultLowOutputLatency')
+            hi_latency  = device.get('defaultHighInputLatency')
+            ho_latency  = device.get('defaultHighOutputLatency')
+            sample_rate = device.get('defaultSampleRate')
+            LOGGER.log(log_level,f'[{h_idx:1},{d_idx:2}] {dev_idx:3} {dev_name[:30]:30} {i_channels:2} {o_channels:2}  {li_latency:7.5f} {lo_latency:7.5f} {hi_latency:7.5f} {ho_latency:7.5f} {sample_rate:12.0f}')
+    LOGGER.info('')
+    LOGGER.info('LEGEND - ic    : Max Input Channels          oc    : Max Output Channels)')
+    LOGGER.info('         li lat: Default Low Input Latency   lo lat: Default Low Output Latency')
+    LOGGER.info('         hi lat: Default High Input Latency  ho lat: Default High Output Latency')
+    LOGGER.info('')
 
-__STOP_REQUSTED = False
+__STOP_REQUESTED = False
 def __stop_handler(signum, frame):
-    global __STOP_REQUSTED
-    __STOP_REQUSTED = True
+    global __STOP_REQUESTED
+    __STOP_REQUESTED = True
+
 
 if __name__ == '__main__':
     import dt_tools.logger.logging_helper as lh
@@ -368,10 +459,11 @@ if __name__ == '__main__':
                                 sample_rate=args.rate,
                                 sound_threshold=args.threshold,
                                 trigger_cnt=args.count)
+    _output_audio_device_report()
     # snd_monitor.capture_path = './docs'
     snd_monitor.capture_data = True
     snd_monitor.start()
-    while not __STOP_REQUSTED:
+    while not __STOP_REQUESTED:
         sleep(1)
 
     snd_monitor.stop()
