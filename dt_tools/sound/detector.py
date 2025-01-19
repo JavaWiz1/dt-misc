@@ -3,7 +3,7 @@ import pathlib
 import threading
 from dataclasses import asdict, dataclass
 from time import sleep, time
-from typing import Dict, List, Tuple, Union
+from typing import Dict, List, Union
 
 import numpy as np
 import pyaudio
@@ -426,6 +426,9 @@ class SoundDetector():
         silent_cnt: int = -1
         self._start_time = time()
         try:
+            # Sound status changes when trigger_count samples either exceed or are less than the threshold
+            # i.e. once sound is detected,   it takes 3 silence segments to trigger silence_detected.
+            #      once silence is detected, it takes 3 sound segments to trigger sound_detected.
             while self.is_listening:
                 raw_data = self._get_audio_stream_data()
                 # Convert buffer to numpy array
@@ -452,6 +455,11 @@ class SoundDetector():
                             was_silent = True
                             LOGGER.debug(f'Silence detected. [Threshold: {self._sound_threshold} | Samples: {self._sample_list}')
                             # silent_cnt = 0  only reset when sound
+                if self.capture_data:
+                    samples = [f'{x:.4f}' for x in self._sample_list]
+                    capture_line = f'{not was_silent}, {self._sound_threshold}, {self.current_audio_mean:.4f}, {self.current_audio_rms:.4f}, {", ".join(samples)}\n'
+                    with self._capture_file.open("a") as f:
+                        f.write(capture_line)
         
         except Exception as ex:
             LOGGER.exception(f'Uh oh - {ex}')
@@ -482,12 +490,13 @@ class SoundDetector():
 
         self._sample_list.append(float(f'{self._current_audio_rms:.4f}'))
         if len(self._sample_list) > self._trigger_count:
+            # Keep only _trigger_count entries in list
             self._sample_list = self._sample_list[-self._trigger_count:]
-        if self.capture_data:
-            samples = [f'{x:.4f}' for x in self._sample_list]
-            capture_line = f'{sound_detected}, {threshold}, {np_mean:.4f}, {rms:.4f}, {", ".join(samples)}\n'
-            with self._capture_file.open("a") as f:
-                f.write(capture_line)
+        # if self.capture_data:
+        #     samples = [f'{x:.4f}' for x in self._sample_list]
+        #     capture_line = f'{sound_detected}, {threshold}, {np_mean:.4f}, {rms:.4f}, {", ".join(samples)}\n'
+        #     with self._capture_file.open("a") as f:
+        #         f.write(capture_line)
 
         return sound_detected
 
