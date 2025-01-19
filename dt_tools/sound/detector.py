@@ -3,7 +3,7 @@ import pathlib
 import threading
 from dataclasses import asdict, dataclass
 from time import sleep, time
-from typing import Dict, List, Union
+from typing import Dict, List, Tuple, Union
 
 import numpy as np
 import pyaudio
@@ -117,8 +117,15 @@ class SoundDetector():
         self._name: str                  = None
 
 
+    # -------------------------------------------------------------------------------------
     @property
     def default_microphone_id(self) -> int:
+        """
+        Default microphone id.
+
+        Returns:
+            str: Microphone id or None if no microphone exists.
+        """        
         pa = pyaudio.PyAudio()
         mic_id = -1
         try:
@@ -131,19 +138,39 @@ class SoundDetector():
 
     @property
     def default_microphone_name(self) -> str:
-        if self._name is None:
-            pa = pyaudio.PyAudio() 
-            self._name = pa.get_default_input_device_info().get('name', 'Unknown')
-        return self._name
+        """
+        Default microphone name.
 
-    
+        Returns:
+            str: Microphone name or 'Unknown' if no microphone exists.
+        """        
+        default_device = self.default_input_device_info()
+        if default_device is None:
+            device_name = 'Unknown'
+        else:
+            device_name = default_device.get('name', 'Unknown')
 
+        return device_name
+
+    # -------------------------------------------------------------------------------------
     @property
     def microphone_id(self) -> int:
+        """
+        Currently selected microphone index.
+
+        Returns:
+            str: Microphone index or -1 if no microphone exists.
+        """
         return self._device_id
     
     @property
     def microphone_name(self) -> str:
+        """
+        Currently selected microphone name.
+
+        Returns:
+            str: Microphone name or 'Unknown' if no microphone exists.
+        """
         if self._device_name is None:
             try:
                 dev_info = pyaudio.PyAudio().get_device_info_by_index(self.microphone_id)
@@ -153,6 +180,7 @@ class SoundDetector():
     
         return self._device_name
     
+    # -------------------------------------------------------------------------------------
     @property
     def default_host_api_info(self) -> Union[dict, None]:
         try:
@@ -164,6 +192,12 @@ class SoundDetector():
 
     @property
     def default_input_device_info(self) -> Union[dict, None]:
+        """
+        Default input device (microphone) info.
+
+        Returns:
+            Union[dict, None]: Dictionary of input device settings.  None if input device does not exist.
+        """
         try:
             device = pyaudio.PyAudio().get_default_input_device_info()
         except IOError as ioe:
@@ -180,36 +214,83 @@ class SoundDetector():
     #         device = None
     #     return device
 
+    # -------------------------------------------------------------------------------------
     @property
     def current_audio_mean(self) -> int:
+
         return self._current_audio_mean
 
     @property
     def current_audio_rms(self) -> int:
+        """
+        Last audio root-mean-squared (rms) value.
+
+        RMS depicts a normalized sound/volume level.
+
+        Returns:
+            int: Normalized rms value
+        """
         return self._current_audio_rms
 
     @property
     def is_listening(self) -> bool:
+        """
+        Is sound detection enabled
+
+        Returns:
+            bool: True if enabled, False if disabled.
+        """
         return self._listening
     
-
+    # -------------------------------------------------------------------------------------
     @property
     def capture_path(self) -> Union[str, None]:
-        return self._capture_path
+        """
+        Directory when capture file will be saved.
+
+        Returns:
+            Union[str, None]: None if not set otherwise capture path.
+        """
+        if self._capture_path is None:
+            self._capture_path = pathlib.Path('.')
+        return self._capture_path.absolute()
+    
     @capture_path.setter
     def capture_path(self, val: str):
+        """
+        Set directory where capture file will be saved.
+
+        Args:
+            val (str): Valid directory path.
+        """
         pth = pathlib.Path(val)
         if pth.is_dir:
             self._capture_path = pth
         else:
             LOGGER.warning(f'Unable to set capture path to {pth}')
 
-
     @property
     def capture_data(self) -> bool:
+        """
+        Capture data state
+
+        Returns:
+            bool: True - capture enabled, False - capture disabled.
+        """
         return self._capture    
+
     @capture_data.setter
     def capture_data(self, enable_capture: bool):
+        """
+        Enable data capture.
+
+        Write runtime data to csv file in below format:
+        
+        - Sound detected, threshold, mean, rms, sample rms (threshold count items)
+
+        Args:
+            enable_capture (bool): True start capture, False end capture.
+        """
         if self._capture:
             if enable_capture:
                 LOGGER.warning('Already in capture mode')
@@ -235,6 +316,7 @@ class SoundDetector():
             else:
                 LOGGER.warning('Capture not enabled, cannot disable.')
 
+    # -------------------------------------------------------------------------------------
     @property
     def elapsed_monitoring_seconds(self) -> float:
         """Number of seconds monitoring has been enabled"""
@@ -243,6 +325,7 @@ class SoundDetector():
         
         return self._elapsed_secs
 
+    #----------------------------------------------------------------------------------------
     #-- Operate functions (Start/Stop) ------------------------------------------------------
     def start(self) -> bool:
         """
@@ -293,6 +376,7 @@ class SoundDetector():
         
         return True
 
+    # -------------------------------------------------------------------------------------
     #-- Set callback functions ------------------------------------------------------------
     def set_sound_callback(self, func: callable):
         """
@@ -313,17 +397,18 @@ class SoundDetector():
         self._silence_trigger_callback = func
 
 
+    # ====================================================================================
     #== Private Functions ================================================================
     def _callback_sound_stub(self):
-        LOGGER.debug(f'Sound detected.  {self._sample_list}')
+        LOGGER.trace(f'Sound detected.  [Threshold: {self._sound_threshold}  Samples: {self._sample_list}]')
 
     def _callback_silence_stub(self):
-        LOGGER.debug(f'Silence.         {self._sample_list}')
+        LOGGER.trace(f'Silence.         [Threshold: {self._sound_threshold}  Samples: {self._sample_list}]')
 
     def _output_settings(self):
         LOGGER.debug('Sound monitoring starting.')
         LOGGER.debug(f'- Microphone ID : {self.microphone_id}')
-        LOGGER.debug(f'           Name : {self.microphone_name}')
+        LOGGER.debug(f'           name : {self.microphone_name}')
         LOGGER.debug(f'- Channels      : {self._channels}')
         LOGGER.debug(f'- Format        : {self._format}')
         LOGGER.debug(f'- Frame count   : {self._frame_count}')
@@ -355,7 +440,8 @@ class SoundDetector():
                             if self._sound_trigger_callback is not None:
                                 self._sound_trigger_callback()
                             was_silent = False
-                            sound_cnt = 0
+                            LOGGER.debug(f'Sound detected. [Threshold: {self._sound_threshold} | Samples: {self._sample_list}')
+                            # sound_cnt = 0 Only reset when silence
                 else: # Currently identified as silent
                     sound_cnt = 0
                     if not was_silent:
@@ -364,7 +450,8 @@ class SoundDetector():
                             if self._silence_trigger_callback is not None:
                                 self._silence_trigger_callback()
                             was_silent = True
-                            silent_cnt = 0
+                            LOGGER.debug(f'Silence detected. [Threshold: {self._sound_threshold} | Samples: {self._sample_list}')
+                            # silent_cnt = 0  only reset when sound
         
         except Exception as ex:
             LOGGER.exception(f'Uh oh - {ex}')
@@ -405,6 +492,8 @@ class SoundDetector():
         return sound_detected
 
 
+# -------------------------------------------------------------------------------------
+# -- Test routines --------------------------------------------------------------------
 def _output_audio_device_report():
     pa = pyaudio.PyAudio()
     default_host_api = pa.get_default_host_api_info().get('index')
@@ -439,6 +528,7 @@ def _output_audio_device_report():
             ho_latency  = device.get('defaultHighOutputLatency')
             sample_rate = device.get('defaultSampleRate')
             LOGGER.log(log_level,f'[{h_idx:1},{d_idx:2}] {dev_idx:3} {dev_name[:30]:30} {i_channels:2} {o_channels:2}  {li_latency:7.5f} {lo_latency:7.5f} {hi_latency:7.5f} {ho_latency:7.5f} {sample_rate:12.0f}')
+
     LOGGER.info('')
     LOGGER.info('LEGEND - ic    : Max Input Channels          oc    : Max Output Channels)')
     LOGGER.info('         li lat: Default Low Input Latency   lo lat: Default Low Output Latency')
@@ -469,12 +559,15 @@ if __name__ == '__main__':
 
     if args.verbose > 1:
         log_level = "TRACE"
+        log_format = lh.DEFAULT_DEBUG_LOGFMT2
     elif args.verbose == 1:
         log_level = "DEBUG"
+        log_format = lh.DEFAULT_DEBUG_LOGFMT
     else:
         log_level = "INFO"
+        log_format = lh.DEFAULT_CONSOLE_LOGFMT
 
-    lh.configure_logger(log_level=log_level, log_format=lh.DEFAULT_DEBUG_LOGFMT)
+    lh.configure_logger(log_level=log_level, log_format=log_format)
     LOGGER.debug(f'Log level set to {log_level}')
 
     OSHelper.enable_ctrl_c_handler(__stop_handler)
@@ -484,11 +577,6 @@ if __name__ == '__main__':
                                 trigger_cnt=args.count)
     
     _output_audio_device_report()
-    
-    LOGGER.info(f'Microphone idx: {snd_monitor.microphone_id}')
-    LOGGER.info(f'          name: {snd_monitor.microphone_name}')
-    LOGGER.info('')
-
     # snd_monitor.capture_path = './docs'
     snd_monitor.capture_data = True
     snd_monitor.start()
