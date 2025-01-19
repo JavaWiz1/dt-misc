@@ -136,9 +136,12 @@ class SoundDetector():
             self._name = pa.get_default_input_device_info().get('name', 'Unknown')
         return self._name
 
+    
+
     @property
     def microphone_id(self) -> int:
         return self._device_id
+    
     @property
     def microphone_name(self) -> str:
         if self._device_name is None:
@@ -319,8 +322,8 @@ class SoundDetector():
 
     def _output_settings(self):
         LOGGER.debug('Sound monitoring starting.')
-        LOGGER.debug(f'- Microphone ID : {self._device_id}')
-        LOGGER.debug(f'           Name : {self._name}')
+        LOGGER.debug(f'- Microphone ID : {self.microphone_id}')
+        LOGGER.debug(f'           Name : {self.microphone_name}')
         LOGGER.debug(f'- Channels      : {self._channels}')
         LOGGER.debug(f'- Format        : {self._format}')
         LOGGER.debug(f'- Frame count   : {self._frame_count}')
