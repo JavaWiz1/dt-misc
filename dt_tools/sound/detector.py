@@ -34,9 +34,9 @@ class SoundDefault:
     FRAME_COUNT: int    = 1024
     CHANNELS: int       = 1
     SAMPLE_RATE: int    = SampleRate.CD_Quality
-    SOUND_THRESHOLD: int = 20 # if OSHelper.is_windows() else 70
+    SOUND_THRESHOLD: int = 20       # if OSHelper.is_windows() else 70
     TRIGGER_CNT: int    = 3
-
+    SILENCE_DB: float   = 0.0       # Reference for silence in decibels
 
 @dataclass
 class SoundDetector():
@@ -212,7 +212,7 @@ class SoundDetector():
         Returns:
             float: db value (0 to 140)
         """
-        return max(self._loudness, 0)
+        return max(self._loudness, SoundDefault.SILENCE_DB)
     
     @property
     def is_listening(self) -> bool:
@@ -388,31 +388,15 @@ class SoundDetector():
         LOGGER.trace(f'Silence.         [Threshold: {self._sound_threshold}  Samples: {self._sample_list}]')
 
 
-    def _calculate_loudness(self, signal: np.array, sample_rate: int):
+    def _calculate_loudness(self, signal: np.array, sample_rate: int) -> float:
         """Calculates loudness of a signal in decibels (db)"""
+        abs_signal_2 = np.abs(signal)**2
+        rms_signal = np.mean(abs_signal_2)
+        # Log10 of negative number is NaN
+        loudness = 10 * np.log10(rms_signal) if rms_signal >=0 else SoundDefault.SILENCE_DB
 
-        loudness = 10 * np.log10(np.mean(np.abs(signal)**2))
+        # print(f'rms_signal: {rms_signal:8.4f}   loudness: {loudness:8.4f}   {loudness2:8.4f}')
         return loudness
-        # # Perform FFT
-        # fft_result = np.fft.fft(signal)
-
-        # # Calculate magnitude spectrum
-        # magnitude_spectrum = np.abs(fft_result)
-
-        # # Calculate power spectrum
-        # power_spectrum = magnitude_spectrum ** 2
-
-        # # Integrate over the frequency range of interest
-        # # For example, for perceived loudness, you might focus on the range 20 Hz - 20 kHz
-        # freq = np.fft.fftfreq(len(signal), 1 / sample_rate)
-        # # mask = (freq >= 20) & (freq <= 20000)
-        # mask = (freq > 2000) & (freq <= 5000)
-        # power_in_range = power_spectrum[mask]
-
-        # # Calculate loudness metric (e.g., RMS power)
-        # rms_power = np.sqrt(np.mean(power_in_range))
-
-        # return rms_power
 
     
     def _output_settings(self):
@@ -491,7 +475,6 @@ class SoundDetector():
 
     def _is_sound_detected2(self, signal_data: np.ndarray, threshold) -> bool:
         self._loudness = self._calculate_loudness(signal=signal_data, sample_rate=self._sample_rate)
-
         self._sample_list.append(float(f'{self._loudness:>4f}'))
         sound_detected = True if self._loudness > threshold else False
         if len(self._sample_list) > self._trigger_count:
