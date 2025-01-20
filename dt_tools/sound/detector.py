@@ -31,7 +31,7 @@ class SampleRate:
     
 
 class SoundDefault:
-    FRAME_COUNT: int    = 2048
+    FRAME_COUNT: int    = 1024
     CHANNELS: int       = 1
     SAMPLE_RATE: int    = SampleRate.CD_Quality
     SOUND_THRESHOLD: int = 20 # if OSHelper.is_windows() else 70
@@ -212,7 +212,7 @@ class SoundDetector():
         Returns:
             float: db value (0 to 140)
         """
-        return self._loudness
+        return max(self._loudness, 0)
     
     @property
     def is_listening(self) -> bool:
