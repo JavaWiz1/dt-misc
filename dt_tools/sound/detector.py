@@ -34,7 +34,7 @@ class SoundDefault:
     FRAME_COUNT: int    = 2048
     CHANNELS: int       = 1
     SAMPLE_RATE: int    = SampleRate.CD_Quality
-    SOUND_THRESHOLD: int = 50 if OSHelper.is_windows() else 70
+    SOUND_THRESHOLD: int = 20 # if OSHelper.is_windows() else 70
     TRIGGER_CNT: int    = 3
 
 
@@ -67,9 +67,9 @@ class SoundDetector():
                 Number of frames captured per second . Defaults to 44100.
 
             snd_threshold (int, optional): 
-                This threshold is a computed value (rms) of the data from the microphone.
+                This threshold is a computed loudness value (0-140 db) of the data from the microphone.
                 When rms exeeds this threshold for trigger_cnt cycles, the sound_trigger_callback is executed. 
-                Defaults to 70.
+                Defaults to 20.
 
             trigger_cnt (int, optional): 
                 The number of cycle that a sound needs to be either above or below the sample_threshold
@@ -99,7 +99,7 @@ class SoundDetector():
         if silence_trigger_callback is None:
             self._silence_trigger_callback = self._callback_silence_stub
 
-        self._device_name: str      = None
+        self._device_name: str         = None
         self._format: int              = pyaudio.paInt16
         self._listening: bool          = False
         self._pyaudio: pyaudio.PyAudio = None
@@ -110,8 +110,9 @@ class SoundDetector():
         self._capture: bool              = False
         self._capture_path: pathlib.Path = None
         self._capture_file: pathlib.Path = None
-        self._current_audio_mean: int    = -1
-        self._current_audio_rms: int     = -1
+        # self._current_audio_mean: int    = -1
+        # self._current_audio_rms: int     = -1
+        self._loudness: float            = 0
         self._start_time: float          = 0
         self._elapsed_secs: float        = 0
         self._name: str                  = None
@@ -215,23 +216,33 @@ class SoundDetector():
     #     return device
 
     # -------------------------------------------------------------------------------------
-    @property
-    def current_audio_mean(self) -> int:
+    # @property
+    # def current_audio_mean(self) -> int:
 
-        return self._current_audio_mean
+    #     return self._current_audio_mean
+
+    # @property
+    # def current_audio_rms(self) -> int:
+    #     """
+    #     Last audio root-mean-squared (rms) value.
+
+    #     RMS depicts a normalized sound/volume level.
+
+    #     Returns:
+    #         int: Normalized rms value
+    #     """
+    #     return self._current_audio_rms
 
     @property
-    def current_audio_rms(self) -> int:
+    def loudness(self) -> float:
         """
-        Last audio root-mean-squared (rms) value.
-
-        RMS depicts a normalized sound/volume level.
+        Loudness in decibels (db)
 
         Returns:
-            int: Normalized rms value
+            float: db value (0 to 140)
         """
-        return self._current_audio_rms
-
+        return self._loudness
+    
     @property
     def is_listening(self) -> bool:
         """
@@ -308,7 +319,8 @@ class SoundDetector():
                 self._capture_file = pathlib.Path(c_filename)
                 rng = [str(x) for x in list(range(self._trigger_count))]
                 sample_headers = f"Sample{', Sample'.join(rng)}"                
-                capture_line = f'sound_detected,threshold,np_mean,rms,{sample_headers}\n'
+                # capture_line = f'sound_detected,threshold,np_mean,rms,{sample_headers}\n'
+                capture_line = f'sound_detected,threshold,loudness(db),{sample_headers}\n'
                 with self._capture_file.open('a') as c_file:
                     c_file.write(capture_line)
                 self._capture = True
@@ -405,6 +417,42 @@ class SoundDetector():
     def _callback_silence_stub(self):
         LOGGER.trace(f'Silence.         [Threshold: {self._sound_threshold}  Samples: {self._sample_list}]')
 
+
+    def _calculate_loudness(self, signal: np.array, sample_rate: int):
+        """Calculates loudness based on the FFT of a signal."""
+
+        # # Perform FFT
+        # fft_result = np.fft.fft(signal)
+
+        # # Calculate magnitude spectrum
+        # magnitude_spectrum = np.abs(fft_result)
+
+        # # Calculate power spectrum
+        # power_spectrum = magnitude_spectrum ** 2
+
+        # # Integrate over the frequency range of interest
+        # # For example, for perceived loudness, you might focus on the range 20 Hz - 20 kHz
+        # freq = np.fft.fftfreq(len(signal), 1 / sample_rate)
+        # # mask = (freq >= 20) & (freq <= 20000)
+        # mask = (freq > 2000) & (freq <= 5000)
+        # power_in_range = power_spectrum[mask]
+
+        # # Calculate loudness metric (e.g., RMS power)
+        # rms_power = np.sqrt(np.mean(power_in_range))
+
+        # return rms_power
+
+        loudness = 10 * np.log10(np.mean(np.abs(signal)**2))
+        return loudness
+    
+    # # Example usage:
+    # signal = ...  # Your audio signal as a NumPy array
+    # sample_rate = 44100  # The sample rate of your audio signal
+
+    # loudness = calculate_loudness(signal, sample_rate)
+    # print(loudness)
+
+
     def _output_settings(self):
         LOGGER.debug('Sound monitoring starting.')
         LOGGER.debug(f'- Microphone ID : {self.microphone_id}')
@@ -433,8 +481,9 @@ class SoundDetector():
                 raw_data = self._get_audio_stream_data()
                 # Convert buffer to numpy array
                 np_data  = np.frombuffer(raw_data, dtype=np.short)[-self._frame_count:]
-                audio_data_array = np.frombuffer(np_data, dtype=np.int16)
-                sound_detected = self._is_sound_detected(audio_data_array, self._sound_threshold)
+                sound_detected = self._is_sound_detected2(np_data, self._sound_threshold)
+                # audio_data_array = np.frombuffer(np_data, dtype=np.int16)
+                # sound_detected = self._is_sound_detected(audio_data_array, self._sound_threshold)
                 if sound_detected:
                     silent_cnt = 0
                     if was_silent:
@@ -457,7 +506,8 @@ class SoundDetector():
                             # silent_cnt = 0  only reset when sound
                 if self.capture_data:
                     samples = [f'{x:.4f}' for x in self._sample_list]
-                    capture_line = f'{not was_silent}, {self._sound_threshold}, {self.current_audio_mean:.4f}, {self.current_audio_rms:.4f}, {", ".join(samples)}\n'
+                    # capture_line = f'{not was_silent}, {self._sound_threshold}, {self.current_audio_mean:.4f}, {self.current_audio_rms:.4f}, {", ".join(samples)}\n'
+                    capture_line = f'{not was_silent}, {self._sound_threshold}, {self.loudness:.4f}, {", ".join(samples)}\n'
                     with self._capture_file.open("a") as f:
                         f.write(capture_line)
         
@@ -478,27 +528,41 @@ class SoundDetector():
         frames = self._stream.read(num_frames, exception_on_overflow=False)
         
         return frames
-    
-    def _is_sound_detected(self, audio_data: np.ndarray, threshold) -> bool:
-        np_mean = np.mean(audio_data**2)
-        rms = np.sqrt(np_mean) if np_mean >= 0 else np.float64(0.0)
-        sound_detected = True if rms > threshold else False
 
-        LOGGER.trace(f'          [{rms:4.2f}] {np_mean:7.2f} {sound_detected}')
-        self._current_audio_mean = np_mean
-        self._current_audio_rms  = rms
 
-        self._sample_list.append(float(f'{self._current_audio_rms:.4f}'))
+    def _is_sound_detected2(self, signal_data: np.ndarray, threshold) -> bool:
+        self._loudness = self._calculate_loudness(signal=signal_data, sample_rate=self._sample_rate)
+        # audio_data_array = np.frombuffer(signal_data, dtype=np.int16)
+        # self._current_audio_mean = np.mean(audio_data_array**2)
+        # self._current_audio_rms = np.sqrt(self._current_audio_mean) if self._current_audio_mean >= 0 else np.float64(0.0)
+
+        self._sample_list.append(float(f'{self._loudness:>4f}'))
+        sound_detected = True if self._loudness > threshold else False
         if len(self._sample_list) > self._trigger_count:
             # Keep only _trigger_count entries in list
             self._sample_list = self._sample_list[-self._trigger_count:]
-        # if self.capture_data:
-        #     samples = [f'{x:.4f}' for x in self._sample_list]
-        #     capture_line = f'{sound_detected}, {threshold}, {np_mean:.4f}, {rms:.4f}, {", ".join(samples)}\n'
-        #     with self._capture_file.open("a") as f:
-        #         f.write(capture_line)
-
         return sound_detected
+
+    # def _is_sound_detected(self, audio_data: np.ndarray, threshold) -> bool:
+    #     np_mean = np.mean(audio_data**2)
+    #     rms = np.sqrt(np_mean) if np_mean >= 0 else np.float64(0.0)
+    #     sound_detected = True if rms > threshold else False
+
+    #     LOGGER.trace(f'          [{rms:4.2f}] {np_mean:7.2f} {sound_detected}')
+    #     # self._current_audio_mean = np_mean
+    #     # self._current_audio_rms  = rms
+
+    #     # self._sample_list.append(float(f'{self._current_audio_rms:.4f}'))
+    #     if len(self._sample_list) > self._trigger_count:
+    #         # Keep only _trigger_count entries in list
+    #         self._sample_list = self._sample_list[-self._trigger_count:]
+    #     # if self.capture_data:
+    #     #     samples = [f'{x:.4f}' for x in self._sample_list]
+    #     #     capture_line = f'{sound_detected}, {threshold}, {np_mean:.4f}, {rms:.4f}, {", ".join(samples)}\n'
+    #     #     with self._capture_file.open("a") as f:
+    #     #         f.write(capture_line)
+
+    #     return sound_detected
 
 
 # -------------------------------------------------------------------------------------
@@ -590,6 +654,8 @@ if __name__ == '__main__':
     snd_monitor.capture_data = True
     snd_monitor.start()
     while not __STOP_REQUESTED:
+        loudness = snd_monitor._loudness
+        LOGGER.info(f'Loudness: {loudness:8.4f}')
         sleep(1)
 
     snd_monitor.stop()
