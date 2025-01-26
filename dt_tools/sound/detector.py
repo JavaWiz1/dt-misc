@@ -327,7 +327,7 @@ class SoundDetector():
                               input_device_index=self.microphone_id,
                               frames_per_buffer=self._frame_count)
         self._listening = True
-        self._monitor_thread = threading.Thread(target=self._monitor, name='snd_monitor')
+        self._monitor_thread = threading.Thread(target=self._monitor, name='snd_monitor', daemon=True)
         self._monitor_thread.start()
         return True
 

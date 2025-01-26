@@ -106,7 +106,7 @@ class Sound(object):
         text = pathlib.Path(in_token).read_text() if cls._is_file(in_token) else in_token
 
         kwargs = {'text': text, 'speed': speed, 'accent': accent, 'delete_audio': delete_audio}
-        t = threading.Thread(target=cls._speak, kwargs=kwargs)
+        t = threading.Thread(target=cls._speak, kwargs=kwargs, daemon=True)
         t.start()
         cls._speak_thread_id = t.native_id
         
