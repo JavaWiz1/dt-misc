@@ -106,7 +106,7 @@ class Sound(object):
         text = pathlib.Path(in_token).read_text() if cls._is_file(in_token) else in_token
 
         kwargs = {'text': text, 'speed': speed, 'accent': accent, 'delete_audio': delete_audio}
-        t = threading.Thread(target=cls._speak, kwargs=kwargs, daemon=True)
+        t = threading.Thread(target=cls._speak, kwargs=kwargs, daemon=False)
         t.start()
         cls._speak_thread_id = t.native_id
         
@@ -153,12 +153,13 @@ class Sound(object):
         # com.au (Australian), co.uk (United Kingdom), us (United States),    ca (Canada), 
         # co.in (India),       ie (Ireland),           co.za (South Africa),  com.ng (Nigeria)
         tts_obj = gTTS(text=text, lang='en', tld=accent.value, slow=False)
-        LOGGER.debug(f'save {sound_file}')
+        LOGGER.debug(f'- save text to {sound_file}')
         tts_obj.save(sound_file)
         
         display_text = textwrap.wrap(text=text, width=100, initial_indent='- Speak: ', subsequent_indent='         ')
         for line in display_text:
             LOGGER.trace(line)
+        
         ret = cls._play(sound_file, speed)
         try:
             pathlib.Path(sound_file).unlink()
@@ -198,7 +199,7 @@ class Sound(object):
             cls._VLC = cls.__chk_vlc_windows()
         else:
             cls._VLC = cls.__chk_vlc_linux()
-
+        LOGGER.debug(f'  VLC: {cls._VLC}')
         return cls._VLC is not None
 
     @classmethod
@@ -211,7 +212,7 @@ class Sound(object):
             start_path = pathlib.Path(os.environ['ProgramFiles(x86)'])
             LOGGER.debug(f'- Searching for {exe} starting at {start_path}')
             target = helper.find_file(filenm=exe, search_path=start_path)
-    
+
         return target
     
     @classmethod
