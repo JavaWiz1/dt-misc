@@ -4,7 +4,7 @@ Speak a string of text or speak the contents of a text file.
 Currently, these routines expect VLC to be installed.
 
 Example::
-    from dt_tools.misc.sound import Accent, Sound
+    from dt_tools.misc.helper import Accent, Sound
 
     obj = Sound()
     obj.speak('This is a test')

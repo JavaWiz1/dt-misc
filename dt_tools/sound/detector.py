@@ -393,8 +393,8 @@ class SoundDetector():
         abs_signal_2 = np.abs(signal)**2
         rms_signal = np.mean(abs_signal_2)
         # Log10 of negative number is NaN
-        loudness = 10 * np.log10(rms_signal) if rms_signal >=0 else SoundDefault.SILENCE_DB
-
+        # loudness = 10 * np.log10(rms_signal) if rms_signal >=0 else SoundDefault.SILENCE_DB
+        loudness = np.sqrt(rms_signal)
         # print(f'rms_signal: {rms_signal:8.4f}   loudness: {loudness:8.4f}   {loudness2:8.4f}')
         return loudness
 
