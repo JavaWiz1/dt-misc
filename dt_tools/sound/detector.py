@@ -72,7 +72,7 @@ class SoundDetector():
                 Defaults to 20.
 
             trigger_cnt (int, optional): 
-                The number of cycle that a sound needs to be either above or below the sample_threshold
+                The number of cycles that a sound needs to be either above or below the sample_threshold
                 for either silence or sound. Defaults to 3.
 
             sound_trigger_callback (callable, optional): 
@@ -388,13 +388,17 @@ class SoundDetector():
         LOGGER.trace(f'Silence.         [Threshold: {self._sound_threshold}  Samples: {self._sample_list}]')
 
 
-    def _calculate_loudness(self, signal: np.array, sample_rate: int) -> float:
+    def _calculate_loudness(self, signal: np.array, sample_rate: int) -> float|None:
         """Calculates loudness of a signal in decibels (db)"""
         abs_signal_2 = np.abs(signal)**2
         rms_signal = np.mean(abs_signal_2)
         # Log10 of negative number is NaN
         # loudness = 10 * np.log10(rms_signal) if rms_signal >=0 else SoundDefault.SILENCE_DB
-        loudness = np.sqrt(rms_signal)
+        try:
+            loudness = np.sqrt(rms_signal) if rms_signal >= 0 else None
+        except Exception as ex:
+            LOGGER.print({ex})
+            loudness = None
         # print(f'rms_signal: {rms_signal:8.4f}   loudness: {loudness:8.4f}   {loudness2:8.4f}')
         return loudness
 
@@ -474,9 +478,12 @@ class SoundDetector():
 
 
     def _is_sound_detected2(self, signal_data: np.ndarray, threshold) -> bool:
-        self._loudness = self._calculate_loudness(signal=signal_data, sample_rate=self._sample_rate)
-        self._sample_list.append(float(f'{self._loudness:>4f}'))
-        sound_detected = True if self._loudness > threshold else False
+        loudness = self._calculate_loudness(signal=signal_data, sample_rate=self._sample_rate)
+        sound_detected = False
+        if loudness is not None:
+            self._loudness = loudness
+            self._sample_list.append(float(f'{self._loudness:>4f}'))
+            sound_detected = True if self._loudness > threshold else False
         if len(self._sample_list) > self._trigger_count:
             # Keep only _trigger_count entries in list
             self._sample_list = self._sample_list[-self._trigger_count:]
